@@ -7,7 +7,7 @@ graph = {}
 graph["directed"] = False
 graph["multigraph"] = False
 graph["graph"] = {}
-graph["nodes"] = [{"id": i} for i in range(100)]
+graph["nodes"] = [{"id": i} for i in range(300)]
 
 group = []
 group.append([i for i in range(0, 21)])
