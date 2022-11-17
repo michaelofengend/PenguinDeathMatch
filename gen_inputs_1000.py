@@ -31,5 +31,3 @@ print("total weight: ", sum(map(lambda x: x["weight"], edges)))
 json_object = json.dumps(graph)
 with open("i1000.in", "w") as outfile:
     outfile.write(json_object)
-
-print()
