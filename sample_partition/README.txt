@@ -11,7 +11,6 @@ To get all nodes assigned to each team, call:
 which returns a vector where a list of all nodes belonging to an indexed team number.
 
 Todo:
-Keep generating these for medium and large graphs.
 Need to generate multiple possibilities for each k and graph, since the algorithm used to produce these assignments is not deterministic.
 
 Also note: part30 and onwards are unnecessary. The cost function for k >= 30 is so large that they do not need to be considered.
