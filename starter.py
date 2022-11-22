@@ -154,3 +154,27 @@ def tar(out_dir, overwrite=False):
         'File already exists and overwrite set to False. Move file or set overwrite to True to proceed.'
     with tarfile.open(path, 'w') as fp:
         fp.add(out_dir)
+
+# CALL: team_vector(filepath, number of partitions) e.g. team_vector('small1_part20.in', 20)
+def team_vector(path: str, num_teams):
+    with open(path) as fp:
+        arr = json.load(fp)
+    vec = [[] for _ in range(num_teams)]
+    num_nodes = len(arr)
+    for p in arr:
+        node = p["nodeId"] % num_nodes   # Modulo because my database does not flush node ids every iteration
+        team = p["communityId"]
+        vec[team].append(node)
+    return vec
+
+# CALL: read_partition(networkx object, filepath)
+def read_partition(G, path: str):
+    with open(path) as fp:
+        arr = json.load(fp)
+    num_nodes = len(arr)
+    for p in arr:
+        node = p["nodeId"] % num_nodes
+        team = p["communityId"]
+        G.nodes[node]['team'] = team
+    return G
+    

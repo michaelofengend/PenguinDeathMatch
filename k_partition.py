@@ -60,9 +60,7 @@ class App:
 
     #EXAMPLE
     @staticmethod
-    def _create_and_return_friendship(tx, person1_name, person2_name):
-        # To learn more about the Cypher syntax, see https://neo4j.com/docs/cypher-manual/current/
-        # The Reference Card is also a good resource for keywords https://neo4j.com/docs/cypher-refcard/current/
+    def _create_and_return(tx, person1_name, person2_name):
         query = (
             "CREATE (p1:Person { name: $person1_name }) "
             "CREATE (p2:Person { name: $person2_name }) "
