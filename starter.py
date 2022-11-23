@@ -103,19 +103,15 @@ def score(G: nx.Graph, separated=False):
 
 
 
-########## How can we make the runtime faster? && and i and j should represent different Vertices########
-def newScore(G: nx.Graph, i, j, separated=False):
+# b is the norm of b 
+# i is b[i]
+# j is b[j]
+# k is the number of teams
+def newScore(G: nx.Graph, i, j, b, k):
     output = [G.nodes[v]['team'] for v in range(G.number_of_nodes())]
-    teams, counts = np.unique(output, return_counts=True)
-    k = np.max(teams)
-    b = np.linalg.norm((counts / G.number_of_nodes()) - 1 / k, 2)
     C_w = sum(d for u, v, d in G.edges(data='weight') if output[u] == output[v])
-    bi = np.linalg.norm(i)
-    bj = np.linalg.nomr(j)
-    
-    if separated:
-        return C_w, K_COEFFICIENT * math.exp(K_EXP * k), math.exp(B_EXP * b)
-    return C_w + K_COEFFICIENT * math.exp(K_EXP * k) + math.exp(B_EXP * math.sqrt(b^2 - bi^2 - bj^2 + (bi - 1/(G.number_of_nodes()))^2 + (bj + 1/(G.number_of_nodes()))^2))
+
+    return C_w + K_COEFFICIENT * math.exp(K_EXP * k) + math.exp(B_EXP * math.sqrt(b^2 - i^2 - j^2 + (i - 1/(G.number_of_nodes()))^2 + (j + 1/(G.number_of_nodes()))^2))
 
 def visualize(G: nx.Graph):
     output = G.nodes(data='team', default=0)
