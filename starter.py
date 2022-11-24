@@ -101,8 +101,6 @@ def score(G: nx.Graph, separated=False):
         return C_w, K_COEFFICIENT * math.exp(K_EXP * k), math.exp(B_EXP * b)
     return C_w + K_COEFFICIENT * math.exp(K_EXP * k) + math.exp(B_EXP * b)
 
-
-
 # b is the norm of b 
 # i is b[i]
 # j is b[j]
