@@ -105,11 +105,18 @@ def score(G: nx.Graph, separated=False):
 # i is b[i]
 # j is b[j]
 # k is the number of teams
-def newScore(G: nx.Graph, i, j, b, k):
+
+def newScore(G: nx.Graph, i, j, b, k, seperated=False, only_weight=False):
     output = [G.nodes[v]['team'] for v in range(G.number_of_nodes())]
     C_w = sum(d for u, v, d in G.edges(data='weight') if output[u] == output[v])
-
-    return C_w + K_COEFFICIENT * math.exp(K_EXP * k) + math.exp(B_EXP * math.sqrt(b^2 - i^2 - j^2 + (i - 1/(G.number_of_nodes()))^2 + (j + 1/(G.number_of_nodes()))^2))
+    p1 = C_w
+    p2 = K_COEFFICIENT*math.exp(K_EXP*k)
+    p3 = math.exp(B_EXP * math.sqrt(b^2 - i^2 - j^2 + (i - 1/(G.number_of_nodes()))^2 + (j + 1/(G.number_of_nodes()))^2))
+    if only_weight:
+        return p1
+    if seperated:
+        return p1, p2, p3
+    return p1 + p2 + p3
 
 def visualize(G: nx.Graph):
     output = G.nodes(data='team', default=0)
