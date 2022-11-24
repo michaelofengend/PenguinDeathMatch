@@ -3,6 +3,11 @@ import networkx as nx
 from greedy import *
 from networkx.algorithms import bipartite
 
+"""
+IGNORE THIS FILE
+Jacob's file to check scores returned by some algorithms.
+"""
+
 best = float('inf')
 G = read_input('./inputs/small5.in')
 for i in range(2, 27):
