@@ -11,7 +11,7 @@ class App:
         # Don't forget to close the driver connection when you are finished with it
         self.driver.close()
 
-    def get_k_cut(self, name, k):
+    def get_k_cut(self, name):
         with self.driver.session(database="neo4j") as session:
             # Do not combine methods; the session executes them in parallel and causes data race if done so
             session.execute_write(self._clear_nodes)
@@ -19,13 +19,13 @@ class App:
             session.execute_write(self._load_graphml, name)
             session.execute_write(self._label_nodes)
             session.execute_write(self._create_graph)
-            result = session.execute_write(self._max_k_cut, k)
-
-        dump = []
-        for record in result:
-            dump.append(record.data())
-        with open("./sample_partition/" + name[:-8] + "_part" + str(k) + ".in", "w") as outfile:
-            json.dump(dump, outfile)
+            for k in range(2, 27):
+                result = session.execute_write(self._max_k_cut, k)
+                dump = []
+                for record in result:
+                    dump.append(record.data())
+                with open("./sample_partition_2/" + name[:-8] + "_part" + str(k) + ".in", "w") as outfile:
+                    json.dump(dump, outfile)
 
     @staticmethod
     def _clear_nodes(tx):
@@ -54,7 +54,7 @@ class App:
 
     @staticmethod
     def _max_k_cut(tx, k):
-        query = ("CALL gds.alpha.maxkcut.stream('g', {k:" + str(k) + ", relationshipWeightProperty:'weight'}) YIELD nodeId, communityId")
+        query = ("CALL gds.alpha.maxkcut.stream('g', {k:" + str(k) + ", relationshipWeightProperty:'weight', iterations : 24, vnsMaxNeighborhoodOrder : 10}) YIELD nodeId, communityId")
         result = tx.run(query)
         return [row for row in result]
 
@@ -77,9 +77,9 @@ class App:
                             query=query, exception=exception))
             raise
 
-def main(size, num, k):
+def main(size, num):
     app = App("bolt://localhost:7687", "neo4j", "1234")
-    app.get_k_cut("{s}{n}.graphml".format(s = size, n = num), k)
+    app.get_k_cut("{s}{n}.graphml".format(s = size, n = num))
     app.close()
 
 # Terminal call
@@ -87,7 +87,5 @@ if __name__ == "__main__":
     import sys
     args = sys.argv
     main(args[0], args[1], args[2])
-
-    
 
 

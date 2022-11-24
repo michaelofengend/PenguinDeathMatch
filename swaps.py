@@ -44,7 +44,8 @@ def swap_score_update(G, v, i, j, k):  # FIXME: FIND ALL ARGUMENTS
     Description:
     Returns new score of the swap.
     """
-    new_C_p = C_p_update(G, b, b2, i, j)
+    new_C_p, new_norm = C_p_update(G, b, b2, i, j)
+    # TODO: Store new norm
     new_C_w = C_w_update(C_w, t_arr, v, i, j)
     return new_C_w + 100 * math.exp(k/2) + new_C_p
 
@@ -63,7 +64,6 @@ def C_p_update(G: nx.Graph, b, b2, i, j):
         New team of vertex to be swapped
 
     Description:
-    Mutates the team vector to reflect the swap.
     Returns the new C_p and the new norm of the team vector.
     """
     n = G.number_of_nodes
@@ -73,8 +73,6 @@ def C_p_update(G: nx.Graph, b, b2, i, j):
         b2^2 - (b[i])^2 - (b[j])^2 + new_b_i^2 + new_b_j^2
     )
     new_C_p_score = math.exp(70*new_norm)
-    b[i] = new_b_i
-    b[j] = new_b_j
     return new_C_p_score, new_norm
 
 # Returns updated score of C_w (intra-team conflict cost)
@@ -93,7 +91,6 @@ def C_w_update(C_w, t_arr, v, i, j):
         New team of vertex to be swapped
 
     Description:
-    Mutates the team assignment vector to reflect the swap.
     Returns the new C_w.
     """
     adj_list = G[v]
@@ -102,6 +99,4 @@ def C_w_update(C_w, t_arr, v, i, j):
             C_w -= adj_list[w]['weight']
         elif t_arr[w] == j:
             C_w += adj_list[w]['weight']
-
-    t_arr[v] = j
     return C_w

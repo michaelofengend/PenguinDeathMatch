@@ -180,10 +180,11 @@ def team_vector(path: str, num_teams):
 def read_partition(G, path: str):
     with open(path) as fp:
         arr = json.load(fp)
-    num_nodes = len(arr)
-    for p in arr:
-        node = p["nodeId"] % num_nodes
-        team = p["communityId"]
-        G.nodes[node]['team'] = team
+    size = arr[-1]["nodeId"] - arr[0]["nodeId"]
+    if size != 99 and size != 299 and size != 999:
+        print(path + "IS BADLY FORMED")
+    for i in range(len(arr)):
+        team = arr[i]["communityId"] + 1
+        G.nodes[i]['team'] = team
     return G
     
