@@ -11,7 +11,6 @@ Get MAXIMAL INDEPENDENT SET (NOT maximum; ideally you would want maximum, but ma
 Form a team with this maximal independent set
 Remove these nodes from consideration when forming the next set
 Continuously perform this until we have a fixed number of teams
-
 PSEUDOCODE:
 S = {all nodes}
 Repeat for i from 1 to k:
@@ -120,3 +119,35 @@ def read_partition(G):
         team = arr[i]["communityId"] + 1
         G.nodes[i]['team'] = team
     return G
+
+def simm_anneal(G, k):
+    t = 2
+    while t <= k:
+        #split teams in half simply based on lowest cost
+        t*=2
+
+def swap_heuristic(G):
+    return 0
+
+def preprocessforMST(G):
+    for u in G.nodes:
+        for v in G.nodes:
+            if u != v:
+                G.add_edge(u,v)
+
+def MST(G):
+    preprocessforMST(G)
+    return nx.minimum_spanning_tree(G)
+
+def kShatter(tree):
+
+def MSTStop(G):
+
+def TSPapprox(G):
+
+def Heuristic():
+
+def teamDissolve(self, team):
+        return team
+
+def Genetic(G):
