@@ -2,20 +2,34 @@ from starter import *
 import random
 from networkx.utils import py_random_state
 import heapq
+import WGraph
 
-<<<<<<< HEAD
-def swap(G, window, k):
+def swap(G: WGraph, window, k):
+    """
+    Returns: (n, j)
+    Where swapping node n to team j results in a reduction in score.
+    """
     baseline = G
     counter = 0
-    swaps = BinaryHeap()
+    swaps = heapq()
     while counter < window:
         swap_node = random.randint(0, len(G.nodes) - 1)
         team_i = G.nodes[swap_node]['team']
         team_j = random.randint(1, k)
         if team_i != team_j:
             new_score = swap_score_change(G, swap_node, team_i, team_j, k)
-            
-=======
+            if new_score > G.cost:
+                continue
+            swaps.heappush(new_score, (swap_node, team_j))
+        counter += 1
+    try:
+        best = swaps.heappop()
+        return best
+    except:
+        return None # No improvement found; in this current implementation, will not return None
+
+"""
+Adam's swap
 def swap(G, window):
     currCost = cost(G)
     lastG = G
@@ -42,20 +56,13 @@ def swap(G, window):
                 it = 0
             else:
                 it += 1
-G = read_input('./inputs/small1.in')
-read_partition(G, './sample_paritition/small1_part5.in')
-test = swap(G, 5)
-def switchNode(G, ind, newteam):
-    G.nodes[ind]['team'] = newteam
-swap("sample_partition_2/small1_part2.in", 5)
-
->>>>>>> 861945bc7c7cd9d7cca85d82484b17f0f52cec3c
+"""
 
 # Use this function ONLY when k is constant
 def swap_score_change(G, v, i, j, k):
     """
     Paramters:
-    G : Graph to be updated
+    G : WGraph to be updated
     v : INTEGER
         node to be updated
     b : ARRAY
@@ -69,16 +76,16 @@ def swap_score_change(G, v, i, j, k):
     Description:
     Returns new score of the swap.
     """
-    b, b2 = G.team_vec       # TODO: MAKE team_vec FIELD FOR G: a tuple of (array, norm)
+    b, b2 = G.b, G.bnorm
     new_C_p, new_norm = C_p_update(G, b, b2, i, j)
-    new_C_w = C_w_update(G.edge_cost, v, i, j)   # TODO: MAKE edge_cost FIELD FOR G
+    new_C_w = C_w_update(G, v, i, j)   # TODO: MAKE edge_cost FIELD FOR G
     return new_C_w + 100 * math.exp(k/2) + new_C_p
 
 # Returns updated score of C_p (team evenness cost)
-def C_p_update(G: nx.Graph, b, b2, i, j):
+def C_p_update(G: WGraph, b, b2, i, j):
     """
     Parameters:
-    G : Graph to be updated
+    G : WGraph to be updated
     b : ARRAY
         Vector describing team sizes
     b2 : FLOAT
@@ -100,11 +107,11 @@ def C_p_update(G: nx.Graph, b, b2, i, j):
     return new_C_p_score, new_norm
 
 # Returns updated score of C_w (intra-team conflict cost)
-def C_w_update(C_w, v, i, j):
+def C_w_update(WG: WGraph, v, i, j):
     """
     Parameters:
-    C_w : FLOAT
-        Original C_w value (intra-team conflict cost)
+    WG : WGraph object
+        Solution instance
     v : INTEGER
         Node to be swapped
     i : INTEGER
@@ -114,6 +121,8 @@ def C_w_update(C_w, v, i, j):
     Description:
     Returns the new C_w.
     """
+    C_w = WG.C_w
+    G = WG.graph
     adj_list = G[v]
     for w in adj_list.keys():
         if G[w]['team'] == i:
