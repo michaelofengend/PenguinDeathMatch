@@ -2,7 +2,7 @@ from starter import *
 import networkx as nx
 from networkx.utils import py_random_state
 
-__all__ = [] # Not implemented yet
+__all__ = ['msi_approx', 'greedy', 'planar_solution', 'coloring_solution'] # Not implemented yet
 
 """
 IDEA:
@@ -20,7 +20,6 @@ Repeat for i from 1 to k:
     Remove I from S
 TODO: Balance the teams
 """
-
 def msi_approx(G):
     teams = []
     G_copy = G.copy()
@@ -41,7 +40,7 @@ def msi_approx(G):
     return
 
 """
-Greedy solution
+Incomplete greedy solution
 """
 # INCOMPLETE
 def greedy(G):
@@ -81,3 +80,20 @@ def planar_solution(G):
         colors = nx.equitable_color(G, 4)
         for c in colors.keys():
             G.nodes[c]['team'] = colors[c]
+
+"""
+Coloring solution:
+Same as M.I.S. solution.
+If a graph can be equitably colored in some k colors, the penalty for edge weights is 0.
+The only penalty would be 100 * exp(0.5k).
+NOTE: This is not realistic, since k would need to be very large. M.I.S. is more realistic.
+"""
+def coloring_solution(G):
+    for k in range(2, 27):
+        try:
+            colors = nx.coloring.equitable_color(G, k)
+        except:
+            continue
+        for c in colors.keys():
+            G.nodes[c]['team'] = colors[c]
+        return

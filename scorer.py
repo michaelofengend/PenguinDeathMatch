@@ -1,13 +1,13 @@
 from starter import *
 import networkx as nx
-from greedy import *
 from networkx.algorithms import bipartite
+import random
 
 """
 IGNORE THIS FILE
 Jacob's file to check scores returned by some algorithms.
 """
-
+"""
 best = float('inf')
 G = read_input('./inputs/small5.in')
 for i in range(2, 27):
@@ -15,6 +15,7 @@ for i in range(2, 27):
     curr_score = score(G)
     best = min(curr_score, best)
 print(best)
+"""
 """
 count = 0
 for size in ['small', 'medium', 'large']:

@@ -29,12 +29,14 @@ swap("small.in", 0)
 
 
 # Use this function ONLY when k is constant
-def swap_score_update(G, v, i, j, k):  # FIXME: FIND ALL ARGUMENTS
+def swap_score_update(G, v, i, j, k):
     """
     Paramters:
     G : Graph to be updated
     v : INTEGER
         node to be updated
+    b : ARRAY
+        Vector describing team sizes
     i : INTEGER
         Original team of v
     j : INTEGER
@@ -44,7 +46,9 @@ def swap_score_update(G, v, i, j, k):  # FIXME: FIND ALL ARGUMENTS
     Description:
     Returns new score of the swap.
     """
+    b, b2 = G.team_vec       # TODO: MAKE team_vec FIELD FOR G: a tuple of (array, norm)
     new_C_p, new_norm = C_p_update(G, b, b2, i, j)
+    G.team_vec = (new_C_p, new_norm)
     # TODO: Store new norm
     new_C_w = C_w_update(C_w, t_arr, v, i, j)
     return new_C_w + 100 * math.exp(k/2) + new_C_p
@@ -76,13 +80,11 @@ def C_p_update(G: nx.Graph, b, b2, i, j):
     return new_C_p_score, new_norm
 
 # Returns updated score of C_w (intra-team conflict cost)
-def C_w_update(C_w, t_arr, v, i, j):
+def C_w_update(C_w, v, i, j):
     """
     Parameters:
     C_w : FLOAT
         Original C_w value (intra-team conflict cost)
-    t_arr : ARRAY
-        Team ASSIGNMENT vector: t_arr[i] gives the team of node i
     v : INTEGER
         Node to be swapped
     i : INTEGER
@@ -95,8 +97,8 @@ def C_w_update(C_w, t_arr, v, i, j):
     """
     adj_list = G[v]
     for w in adj_list.keys():
-        if t_arr[w] == i:
+        if G[w]['team'] == i:
             C_w -= adj_list[w]['weight']
-        elif t_arr[w] == j:
+        elif G[w]['team'] == j:
             C_w += adj_list[w]['weight']
     return C_w
