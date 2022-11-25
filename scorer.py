@@ -62,3 +62,6 @@ import k_partition
 for k in range (2, 30): # FROM k = 2 to 29
     k_partition.main('large', 1, k)
 """
+
+import networkx.utils.heaps
+print(networkx.utils.heaps.__file__)

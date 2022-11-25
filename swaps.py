@@ -1,7 +1,6 @@
 from starter import *
 import random
-from networkx.utils import py_random_state
-import heapq
+from networkx.utils import py_random_state, BinaryHeap
 import WGraph
 
 def swap(G: WGraph, window, k):
@@ -11,21 +10,21 @@ def swap(G: WGraph, window, k):
     """
     baseline = G
     counter = 0
-    swaps = heapq()
+    swaps = BinaryHeap()
     while counter < window:
         swap_node = random.randint(0, len(G.nodes) - 1)
         team_i = G.nodes[swap_node]['team']
         team_j = random.randint(1, k)
         if team_i != team_j:
-            new_score = swap_score_change(G, swap_node, team_i, team_j, k)
+            new_score = swap_score_change(G, swap_node, team_i, team_j, k) # Calculates new score without mutating the object
             if new_score > G.cost:
                 continue
-            swaps.heappush(new_score, (swap_node, team_j))
-        counter += 1
+            swaps.insert(new_score, (swap_node, team_j)) # Pushes tuple (swap_node, team_j) with value new_score to heap swaps
+            counter += 1
     try:
-        best = swaps.heappop()
-        return best
-    except:
+        best_score, best_swap = swaps.min()
+        return best_score, best_swap
+    except nx.NetworkXError:
         return None # No improvement found; in this current implementation, will not return None
 
 """
