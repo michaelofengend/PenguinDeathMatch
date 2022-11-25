@@ -1,35 +1,22 @@
 from starter import *
 import random
+from networkx.utils import py_random_state
+import heapq
 
-def swap(name, window):
-    G = read_input(name)
+def swap(G, window, k):
     baseline = G
-    it = 0
-    while it < window:
-        n1ind = random.randint(0, len(G.nodes) - 1)
-        n1 = G.nodes[n1ind] # need way to pass to deep reference
-        #think of better way to randomly get from not same team, possibly get list of nodes in teams
-        n2ind = random.randint(0, len(G.nodes) - 1)
-        n2 = G.nodes[n2ind]
-        if n1['team'] != n2['team']:
-            n1team = n1['team']
-            n1['team'] = n2['team']
-            n2['team'] = n1team
-            Gcopy = G.copy()
-            Gcopy.nodes[n1ind] = n1
-            Gcopy.nodes[n2ind] = n2
-            #inefficient score calc, use hw alg
-            G = Gcopy
-            if score(Gcopy) > score(baseline):
-                baseline = Gcopy
-                it = 0
-            else:
-                it += 1
-swap("small.in", 0)
-
+    counter = 0
+    swaps = BinaryHeap()
+    while counter < window:
+        swap_node = random.randint(0, len(G.nodes) - 1)
+        team_i = G.nodes[swap_node]['team']
+        team_j = random.randint(1, k)
+        if team_i != team_j:
+            new_score = swap_score_change(G, swap_node, team_i, team_j, k)
+            
 
 # Use this function ONLY when k is constant
-def swap_score_update(G, v, i, j, k):
+def swap_score_change(G, v, i, j, k):
     """
     Paramters:
     G : Graph to be updated
@@ -48,9 +35,7 @@ def swap_score_update(G, v, i, j, k):
     """
     b, b2 = G.team_vec       # TODO: MAKE team_vec FIELD FOR G: a tuple of (array, norm)
     new_C_p, new_norm = C_p_update(G, b, b2, i, j)
-    G.team_vec = (new_C_p, new_norm)
-    # TODO: Store new norm
-    new_C_w = C_w_update(C_w, t_arr, v, i, j)
+    new_C_w = C_w_update(G.edge_cost, v, i, j)   # TODO: MAKE edge_cost FIELD FOR G
     return new_C_w + 100 * math.exp(k/2) + new_C_p
 
 # Returns updated score of C_p (team evenness cost)
