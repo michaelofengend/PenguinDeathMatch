@@ -97,3 +97,26 @@ def coloring_solution(G):
         for c in colors.keys():
             G.nodes[c]['team'] = colors[c]
         return
+
+# CALL: read_partition(networkx object, filepath)
+def read_partition(G):
+    name = G.name
+    best = None
+    best_score = float('inf')
+    for k in range(2, 27):
+        path = "./sample_partition/" + name + "_part" + str(k) + ".in"
+        with open(path) as fp:
+            arr = json.load(fp)
+        size = arr[-1]["nodeId"] - arr[0]["nodeId"]
+        if size != 99 and size != 299 and size != 999:
+            print(path + "IS BADLY FORMED")
+        for i in range(len(arr)):
+            team = arr[i]["communityId"] + 1
+            G.nodes[i]['team'] = team
+        if score(G) < best_score:
+            best = arr
+    
+    for i in range(len(best)):
+        team = arr[i]["communityId"] + 1
+        G.nodes[i]['team'] = team
+    return G

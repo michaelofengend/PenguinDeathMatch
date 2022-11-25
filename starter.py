@@ -35,6 +35,7 @@ def read_input(path: str):
     assert os.path.getsize(path) < INPUT_SIZE_LIMIT, 'This input file is too large'
     with open(path) as fp:
         G = nx.node_link_graph(json.load(fp), multigraph=False)
+        G.name = os.path.basename(path).split('/')[-1]    # ADDED TO RECORD GRAPH NAME AS A FIELD
         if validate_input(G):
             return G
 

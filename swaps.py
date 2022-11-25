@@ -3,6 +3,7 @@ import random
 from networkx.utils import py_random_state
 import heapq
 
+<<<<<<< HEAD
 def swap(G, window, k):
     baseline = G
     counter = 0
@@ -14,6 +15,41 @@ def swap(G, window, k):
         if team_i != team_j:
             new_score = swap_score_change(G, swap_node, team_i, team_j, k)
             
+=======
+def swap(G, window):
+    currCost = cost(G)
+    lastG = G
+    globalMin = lastG
+    it = 0
+    while it < window:
+        n1ind = random.randint(0, len(lastG.nodes) - 1)
+        n1 = lastG.nodes[n1ind] # need way to pass to deep reference
+        #think of better way to randomly get from not same team, possibly get list of nodes in teams
+        n2ind = random.randint(0, len(lastG.nodes) - 1)
+        n2 = lastG.nodes[n2ind]
+        if n1['team'] != n2['team']:
+            n1team = n1['team']
+            n1['team'] = n2['team']
+            n2['team'] = n1team
+            nextG = lastG.copy()
+            nextG.nodes[n1ind] = n1
+            nextG.nodes[n2ind] = n2
+            #inefficient score calc, use hw alg
+            lastG = nextG
+            currCost =
+            if score(lastG) > score(globalMin):
+                globalMin = lastG
+                it = 0
+            else:
+                it += 1
+G = read_input('./inputs/small1.in')
+read_partition(G, './sample_paritition/small1_part5.in')
+test = swap(G, 5)
+def switchNode(G, ind, newteam):
+    G.nodes[ind]['team'] = newteam
+swap("sample_partition_2/small1_part2.in", 5)
+
+>>>>>>> 861945bc7c7cd9d7cca85d82484b17f0f52cec3c
 
 # Use this function ONLY when k is constant
 def swap_score_change(G, v, i, j, k):
@@ -51,7 +87,6 @@ def C_p_update(G: nx.Graph, b, b2, i, j):
         Original team of vertex to be swapped
     j : INTEGER
         New team of vertex to be swapped
-
     Description:
     Returns the new C_p and the new norm of the team vector.
     """
@@ -76,7 +111,6 @@ def C_w_update(C_w, v, i, j):
         Original team of vertex to be swapped
     j : INTEGER
         New team of vertex to be swapped
-
     Description:
     Returns the new C_w.
     """
