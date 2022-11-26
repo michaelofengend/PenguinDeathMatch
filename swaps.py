@@ -3,7 +3,7 @@ import random
 from networkx.utils import py_random_state, BinaryHeap
 import WGraph
 
-def swap(G: WGraph, window, k):
+def swap(G: WGraph, window):
     """
     Returns: (n, j)
     Where swapping node n to team j results in a reduction in score.
@@ -16,7 +16,7 @@ def swap(G: WGraph, window, k):
         team_i = G.nodes[swap_node]['team']
         team_j = random.randint(1, k)
         if team_i != team_j:
-            new_score = swap_score_change(G, swap_node, team_i, team_j, k) # Calculates new score without mutating the object
+            new_score = swap_score_change(G, swap_node, team_i, team_j) # Calculates new score without mutating the object
             if new_score > G.cost:
                 continue
             swaps.insert(new_score, (swap_node, team_j)) # Pushes tuple (swap_node, team_j) with value new_score to heap swaps
@@ -58,7 +58,7 @@ def swap(G, window):
 """
 
 # Use this function ONLY when k is constant
-def swap_score_change(G, v, i, j, k):
+def swap_score_change(G, v, i, j):
     """
     Paramters:
     G : WGraph to be updated
@@ -70,15 +70,13 @@ def swap_score_change(G, v, i, j, k):
         Original team of v
     j : INTEGER
         New team of v
-    k : INTEGER
-        Number of teams (Should remain constant)
     Description:
     Returns new score of the swap.
     """
     b, b2 = G.b, G.bnorm
     new_C_p, new_norm = C_p_update(G, b, b2, i, j)
     new_C_w = C_w_update(G, v, i, j)   # TODO: MAKE edge_cost FIELD FOR G
-    return new_C_w + 100 * math.exp(k/2) + new_C_p
+    return new_C_w + 100 * math.exp(G.k / 2) + new_C_p
 
 # Returns updated score of C_p (team evenness cost)
 def C_p_update(G: WGraph, b, b2, i, j):

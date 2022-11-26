@@ -164,35 +164,9 @@ def run_all(solver, in_dir, out_dir, overwrite: bool=False):
     for file in tqdm([x for x in os.listdir(in_dir) if x.endswith('.in')]):
         run(solver, str(Path(in_dir) / file), str(Path(out_dir) / f"{file[:-len('.in')]}.out"), overwrite)
 
-
 def tar(out_dir, overwrite=False):
     path = f'{os.path.basename(out_dir)}.tar'
     assert overwrite or not os.path.exists(path), \
         'File already exists and overwrite set to False. Move file or set overwrite to True to proceed.'
     with tarfile.open(path, 'w') as fp:
         fp.add(out_dir)
-
-# CALL: team_vector(filepath, number of partitions) e.g. team_vector('small1_part20.in', 20)
-def team_vector(path: str, num_teams):
-    with open(path) as fp:
-        arr = json.load(fp)
-    vec = [[] for _ in range(num_teams)]
-    num_nodes = len(arr)
-    for p in arr:
-        node = p["nodeId"] % num_nodes   # Modulo because my database does not flush node ids every iteration
-        team = p["communityId"]
-        vec[team].append(node)
-    return vec
-
-# CALL: read_partition(networkx object, filepath)
-def read_partition(G, path: str):
-    with open(path) as fp:
-        arr = json.load(fp)
-    size = arr[-1]["nodeId"] - arr[0]["nodeId"]
-    if size != 99 and size != 299 and size != 999:
-        print(path + "IS BADLY FORMED")
-    for i in range(len(arr)):
-        team = arr[i]["communityId"] + 1
-        G.nodes[i]['team'] = team
-    return G
-    

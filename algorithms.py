@@ -82,20 +82,55 @@ def planar_solution(G):
 
 """
 Coloring solution:
-Same as M.I.S. solution.
-If a graph can be equitably colored in some k colors, the penalty for edge weights is 0.
-The only penalty would be 100 * exp(0.5k).
-NOTE: This is not realistic, since k would need to be very large. M.I.S. is more realistic.
+SPECIALIZED FOR SPARSE GRAPHS
+Find a maximum spanning tree of the graph.
+2-Color each Mst and add them to existing teams in a balanced way.
 """
+def sets(G):
+        c = nx.bipartite.color(G)
+        X = {n for n, is_top in c.items() if is_top}
+        Y = {n for n, is_top in c.items() if not is_top}
+        return (X, Y) # Returns bi-partition of the graph
+
 def coloring_solution(G):
-    for k in range(2, 27):
-        try:
-            colors = nx.coloring.equitable_color(G, k)
-        except:
-            continue
-        for c in colors.keys():
-            G.nodes[c]['team'] = colors[c]
-        return
+    max_st = nx.maximum_spanning_tree(G)
+    cc_list = nx.connected_components(max_st) # Connected components in G and MST are the same
+    t1_total = 0
+    t2_total = 0
+    for component in cc_list:
+        cc_graph = max_st.subgraph(list(component))
+        left, right = sets(cc_graph)
+        # Spaghetti code start: keep the teams balanced
+        if t1_total <= t2_total:
+            if len(left) >= len(right):
+                for a in left:
+                    G.nodes[a]['team'] = 1
+                    t1_total += 1
+                for b in right:
+                    G.nodes[b]['team'] = 2
+                    t2_total += 1
+            else:
+                for a in left:
+                    G.nodes[a]['team'] = 2
+                    t2_total += 1
+                for b in right:
+                    G.nodes[b]['team'] = 1
+                    t1_total += 1
+        elif t1_total > t2_total:
+            if len(left) < len(right):
+                for a in left:
+                    G.nodes[a]['team'] = 1
+                    t1_total += 1
+                for b in right:
+                    G.nodes[b]['team'] = 2
+                    t2_total += 1
+            else:
+                for a in left:
+                    G.nodes[a]['team'] = 2
+                    t2_total += 1
+                for b in right:
+                    G.nodes[b]['team'] = 1
+                    t1_total += 1
 
 # CALL: read_partition(networkx object, filepath)
 def read_partition(G):
@@ -140,14 +175,19 @@ def MST(G):
     return nx.minimum_spanning_tree(G)
 
 def kShatter(tree):
+    pass
 
 def MSTStop(G):
+    pass
 
 def TSPapprox(G):
+    pass
 
 def Heuristic():
+    pass
 
 def teamDissolve(self, team):
-        return team
+    return team
 
 def Genetic(G):
+    pass

@@ -8,14 +8,43 @@ IGNORE THIS FILE
 Jacob's file to check scores returned by some algorithms.
 """
 """
-best = float('inf')
-G = read_input('./inputs/small5.in')
-for i in range(2, 27):
-    read_partition(G, './sample_partition_2/small5_part' + str(i) + '.in')
-    curr_score = score(G)
-    best = min(curr_score, best)
-print(best)
+for i in range(1, 261):
+    G = read_input('./inputs/large' + str(i) + '.in')
+    n = nx.number_connected_components(G)
+    print(i, "has", n, "connected components")
+    cc_list = nx.connected_components(G)
+    print([len(cc) for cc in cc_list])
+    try:
+        print(nx.find_cycle(G, orientation='ignore'))
+    except:
+        print("No cycle")
+            
+G = read_input('./inputs/large218.in')
+n = nx.number_connected_components(G)
+print("218 has", n, "connected components")
+cc_list = nx.connected_components(G)
+
+print([len(cc) for cc in cc_list])
+try:
+    print(nx.find_cycle(G, orientation='ignore'))
+except:
+    print("No cycle")
 """
+
+best = float('inf')
+best_k = 0
+G = read_input('./inputs/large40.in')
+for i in range(2, 27):
+    read_partition(G, './sample_partition_2/large40_part' + str(i) + '.in')
+    curr_score = score(G)
+    if curr_score < best:
+        best = min(curr_score, best)
+        best_k = i
+print(best, best_k)
+
+G = read_input('./inputs/small53.in')
+print(G.number_of_edges())
+
 """
 count = 0
 for size in ['small', 'medium', 'large']:
@@ -62,6 +91,3 @@ import k_partition
 for k in range (2, 30): # FROM k = 2 to 29
     k_partition.main('large', 1, k)
 """
-
-import networkx.utils.heaps
-print(networkx.utils.heaps.__file__)
