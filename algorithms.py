@@ -1,6 +1,7 @@
 from starter import *
 import networkx as nx
 from networkx.utils import py_random_state
+import random
 
 __all__ = ['msi_approx', 'greedy', 'planar_solution', 'coloring_solution'] # Not implemented yet
 
@@ -151,12 +152,20 @@ def MST(G):
 #will only return max weight cut, not the actual nodes to cut
 #the boundaries and base cases are flat out wrong
 
+
+
+
+
 def kShatter(G, d, u, r, l, t, k):
+    sum = 0
+    it = 0
+    kids = list(G.neighbors(u))        
+
     #base case
-    if t == 0:
-        sum = 0
-        it = 0
-        kids = nx.neighbors(G, u)
+    if l <= t:
+        return -1*float('inf')
+    
+    if l == 1:
         #return weight of first r kids of u
         #might need to add parameter to store parent so it doesnt confuse itself
         for v in kids:
@@ -166,31 +175,46 @@ def kShatter(G, d, u, r, l, t, k):
         return sum
 
     options = []
-    kids = nx.neighbors(G,u)
-    kids.remove(d)
+    if d:
+        kids.remove(d)
+    print(r)
+    if r-1 not in kids:
+        return 0
     currKid = kids[r-1]
-    for i in range(l, t):
+    for i in range(1, l-1):
+        print(i)
         #the last two parameters probably wrong
-        options.append(kShatter(G,d,u,r-1,i,t,k)
-        + kShatter(G,u,currKid,len(nx.neighbors(G,currKid))-1,l,t-i,k))
+        options.append(kShatter(G,d,u,r-1,l-i,t,k)
+        + kShatter(G,u,currKid,len(nx.neighbors(G,currKid))-1,i,t,k))
     option1 = max(options)
 
     options = []  
-    for i in range(l,k):
+    for i in range(1,k):
+        print(i)
         #again bounds here at end wrong
-        options.append(kShatter(G,u,currKid,len(nx.neighbors(G,currKid))-1,l,t-i,k))
+        options.append(kShatter(G,u,currKid,len(nx.neighbors(G,currKid))-1,i,t,k))
     option2 = kShatter(G,d,u,r-1,l,t,k)+G[u][currKid]['weight']+max(options)
     return max(option1, option2)
 
+if __name__ == '__main__':
+    randomG = nx.complete_graph(20)
+    for (u, v) in randomG.edges():
+        randomG[u][v]['weight'] = random.randint(1, 10)
 
+    tree = MST(randomG)
+    print(tree)
+    print(kShatter(tree, None, 0, len(list(tree.neighbors(0))), len(tree.nodes), 5, 7))
 
 def MSTStop(G):
-
+    return -1
 def TSPapprox(G):
+    return -1
 
 def Heuristic():
+    return -1
 
 def teamDissolve(self, team):
         return team
 
 def Genetic(G):
+    return -1
