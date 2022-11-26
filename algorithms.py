@@ -139,7 +139,50 @@ def MST(G):
     preprocessforMST(G)
     return nx.minimum_spanning_tree(G)
 
-def kShatter(tree):
+#Inputs:
+#G = the graph
+#d = parent node
+#u = root node
+#r = num kids
+#l = current k
+#t = upper bound of k
+#global k
+#issues to deal with rn
+#will only return max weight cut, not the actual nodes to cut
+#the boundaries and base cases are flat out wrong
+
+def kShatter(G, d, u, r, l, t, k):
+    #base case
+    if t == 0:
+        sum = 0
+        it = 0
+        kids = nx.neighbors(G, u)
+        #return weight of first r kids of u
+        #might need to add parameter to store parent so it doesnt confuse itself
+        for v in kids:
+            if it < r and v != d:
+                sum += G[u][v]['weight']
+                it += 1
+        return sum
+
+    options = []
+    kids = nx.neighbors(G,u)
+    kids.remove(d)
+    currKid = kids[r-1]
+    for i in range(l, t):
+        #the last two parameters probably wrong
+        options.append(kShatter(G,d,u,r-1,i,t,k)
+        + kShatter(G,u,currKid,len(nx.neighbors(G,currKid))-1,l,t-i,k))
+    option1 = max(options)
+
+    options = []  
+    for i in range(l,k):
+        #again bounds here at end wrong
+        options.append(kShatter(G,u,currKid,len(nx.neighbors(G,currKid))-1,l,t-i,k))
+    option2 = kShatter(G,d,u,r-1,l,t,k)+G[u][currKid]['weight']+max(options)
+    return max(option1, option2)
+
+
 
 def MSTStop(G):
 
