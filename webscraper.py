@@ -11,7 +11,7 @@ def checker():
     bestDirectory = {}
     driver = webdriver.Chrome()
     for size in sizes:
-        for j in range(1, 161):
+        for j in range(1, 261):
             driver.get('https://170-leaderboard.vercel.app/input/' + size + '/' + f'{j}')
             score = driver.find_element("xpath", '/html/body/div/div/div/div/table/tbody/tr[1]/td[3]')
             bestDirectory[f'{size}{j}'] = score.text
@@ -28,9 +28,6 @@ def checker():
 def read_partition(G, path: str):
     with open(path) as fp:
         arr = json.load(fp)
-    size = arr[-1]["nodeId"] - arr[0]["nodeId"]
-    if size != 99 and size != 299 and size != 999:
-        print(path + "IS BADLY FORMED")
     for i in range(len(arr)):
         team = arr[i]["communityId"] + 1
         G.nodes[i]['team'] = team
@@ -40,7 +37,7 @@ def compareScores():
     best = pd.read_csv('bestscores.csv')
     id = best['Graph']
     sc = best['Score']
-    sizes = ['small']
+    sizes = ['small', 'medium', 'large']
     dict = {}
     for size in sizes:
         for j in range(1, 261):
@@ -54,12 +51,12 @@ def compareScores():
                 lis.append(scor)
             dict[name] = min(lis)
 
-            
+    
     count = 0
-    for k in range(160):
+    for k in range(780):
         if id[k] == list(dict.keys())[k]:
             print(id[k], sc[k], list(dict.values())[k])
-            if sc[k] >= list(dict.values())[k]:
+            if sc[k] > list(dict.values())[k]:
                 count += 1
     print(count)
 
