@@ -2,6 +2,7 @@ from starter import *
 import networkx as nx
 from networkx.algorithms import bipartite
 import random
+import algorithms
 
 """
 IGNORE THIS FILE
@@ -31,19 +32,11 @@ except:
     print("No cycle")
 """
 
-best = float('inf')
-best_k = 0
-G = read_input('./inputs/large40.in')
-for i in range(2, 27):
-    read_partition(G, './sample_partition_2/large40_part' + str(i) + '.in')
-    curr_score = score(G)
-    if curr_score < best:
-        best = min(curr_score, best)
-        best_k = i
-print(best, best_k)
-
-G = read_input('./inputs/small53.in')
-print(G.number_of_edges())
+G = read_input('./inputs/small6.in')
+print(nx.number_connected_components(G))
+algorithms.read_partition(G)
+curr_score = score(G)
+print(curr_score)
 
 """
 count = 0

@@ -3,7 +3,6 @@ import networkx as nx
 from networkx.utils import py_random_state
 import random
 
-__all__ = ['msi_approx', 'greedy', 'planar_solution', 'coloring_solution'] # Not implemented yet
 
 """
 IDEA:
@@ -139,7 +138,7 @@ def read_partition(G):
     best = None
     best_score = float('inf')
     for k in range(2, 27):
-        path = "./sample_partition/" + name + "_part" + str(k) + ".in"
+        path = "./sample_partition_2/" + name + "_part" + str(k) + ".in"
         with open(path) as fp:
             arr = json.load(fp)
         size = arr[-1]["nodeId"] - arr[0]["nodeId"]
@@ -175,19 +174,6 @@ def MST(G):
     preprocessforMST(G)
     return nx.minimum_spanning_tree(G)
 
-<<<<<<< HEAD
-def kShatter(tree):
-    pass
-
-def MSTStop(G):
-    pass
-
-def TSPapprox(G):
-    pass
-
-def Heuristic():
-    pass
-=======
 #Inputs:
 #G = the graph
 #d = parent node
@@ -260,14 +246,9 @@ def TSPapprox(G):
 
 def Heuristic():
     return -1
->>>>>>> 3b830027ca28ff199fc58053cc806429bed49f66
 
 def teamDissolve(self, team):
     return team
 
 def Genetic(G):
-<<<<<<< HEAD
-    pass
-=======
     return -1
->>>>>>> 3b830027ca28ff199fc58053cc806429bed49f66
