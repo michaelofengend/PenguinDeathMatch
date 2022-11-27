@@ -47,16 +47,19 @@ def compareScores():
             G = read_input('./inputs/' + size + str(j) + '.in')
             name = size + str(j)
             scor = float('inf')
+            lis = []
             for i in range(2, 27):  
                 read_partition(G, './sample_partition_2/'+ name + '_part' + str(i)+ '.in')
                 scor = score(G)
-                dict[name] = scor
+                lis.append(scor)
+            dict[name] = min(lis)
+
             
     count = 0
     for k in range(160):
         if id[k] == list(dict.keys())[k]:
             print(id[k], sc[k], list(dict.values())[k])
-            if sc[k] + 10000 >= list(dict.values())[k]:
+            if sc[k] >= list(dict.values())[k]:
                 count += 1
     print(count)
 
