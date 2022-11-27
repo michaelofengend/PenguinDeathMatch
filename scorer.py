@@ -32,8 +32,7 @@ except:
     print("No cycle")
 """
 
-G = read_input('./inputs/small6.in')
-print(nx.number_connected_components(G))
+G = read_input('./inputs/small1.in')
 algorithms.read_partition(G)
 curr_score = score(G)
 print(curr_score)

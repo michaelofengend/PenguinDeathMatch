@@ -132,7 +132,6 @@ def coloring_solution(G):
                     G.nodes[b]['team'] = 1
                     t1_total += 1
 
-# CALL: read_partition(networkx object, filepath)
 def read_partition(G):
     name = G.name
     best = None
@@ -149,7 +148,7 @@ def read_partition(G):
             G.nodes[i]['team'] = team
         if score(G) < best_score:
             best = arr
-    
+            best_score = score(G)
     for i in range(len(best)):
         team = arr[i]["communityId"] + 1
         G.nodes[i]['team'] = team
