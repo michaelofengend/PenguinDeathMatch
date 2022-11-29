@@ -51,7 +51,6 @@ def compareScores():
                 lis.append(scor)
             dict[name] = min(lis)
 
-    
     count = 0
     for k in range(780):
         if id[k] == list(dict.keys())[k]:

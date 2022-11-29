@@ -2,7 +2,11 @@ from starter import *
 import networkx as nx
 from networkx.utils import py_random_state
 import random
-
+from heapq import heappop, heappush
+from itertools import count
+import time
+from math import isnan
+import matplotlib.pyplot as plt
 
 """
 IDEA:
@@ -173,6 +177,89 @@ def MST(G):
     preprocessforMST(G)
     return nx.minimum_spanning_tree(G)
 
+def prim_mst_edges(G, k, minimum, weight="weight", keys=True, data=True, ignore_nan=False):
+    """Iterate over edges of Prim's algorithm min/max spanning tree.
+
+    Parameters
+    ----------
+    G : NetworkX Graph
+        The graph holding the tree of interest.
+
+    minimum : bool (default: True)
+        Find the minimum (True) or maximum (False) spanning tree.
+
+    weight : string (default: 'weight')
+        The name of the edge attribute holding the edge weights.
+
+    keys : bool (default: True)
+        If `G` is a multigraph, `keys` controls whether edge keys ar yielded.
+        Otherwise `keys` is ignored.
+
+    data : bool (default: True)
+        Flag for whether to yield edge attribute dicts.
+        If True, yield edges `(u, v, d)`, where `d` is the attribute dict.
+        If False, yield edges `(u, v)`.
+
+    ignore_nan : bool (default: False)
+        If a NaN is found as an edge weight normally an exception is raised.
+        If `ignore_nan is True` then that edge is ignored instead.
+
+    """
+    push = heappush
+    pop = heappop
+
+    nodes = set(G)
+    c = count()
+
+    sign = 1 if minimum else -1
+    it = 0
+    while nodes:
+        u = nodes.pop()
+        frontier = []
+        visited = {u}
+        for v, d in G.adj[u].items():
+            wt = d.get(weight, 1) * sign
+            push(frontier, (wt, next(c), u, v, d))
+        while nodes and frontier:
+            W, _, u, v, d = pop(frontier)
+            if v in visited or v not in nodes:
+                continue
+            it += 1
+            if it % k != 0:
+                yield u, v, d
+            # update frontier
+            visited.add(v)
+            nodes.discard(v)
+            for w, d2 in G.adj[v].items():
+                if w in visited:
+                    continue
+                new_weight = d2.get(weight, 1) * sign
+                push(frontier, (new_weight, next(c), v, w, d2))
+ALGORITHMS = {
+    "prim": prim_mst_edges,
+}
+
+def minimum_spanning_edges(G, k, algorithm="prim", weight="weight", keys=True, data=True, ignore_nan=False):
+
+    try:
+        algo = ALGORITHMS[algorithm]
+    except KeyError as err:
+        msg = f"{algorithm} is not a valid choice for an algorithm."
+        raise ValueError(msg) from err
+    return algo(
+        G, k, minimum=True, weight=weight, keys=keys, data=data, ignore_nan=ignore_nan
+    )
+
+
+def ms3(G, k, weight="weight", algorithm="prim", ignore_nan=False):
+
+    edges = minimum_spanning_edges(G, k, algorithm, weight, keys=True, data=True, ignore_nan=ignore_nan)
+    T = G.__class__()  # Same graph class as G
+    T.graph.update(G.graph)
+    T.add_nodes_from(G.nodes.items())
+    T.add_edges_from(edges)
+    return T
+
 #Inputs:
 #G = the graph
 #d = parent node
@@ -190,53 +277,79 @@ def MST(G):
 
 
 def kShatter(G, d, u, r, l, t, k):
-    sum = 0
+    
     it = 0
     kids = list(G.neighbors(u))        
 
     #base case
     if l <= t:
+        print("this works")
         return -1*float('inf')
     
     if l == 1:
         #return weight of first r kids of u
         #might need to add parameter to store parent so it doesnt confuse itself
+        sum = 0
         for v in kids:
             if it < r and v != d:
                 sum += G[u][v]['weight']
                 it += 1
         return sum
 
-    options = []
-    if d:
-        kids.remove(d)
-    print(r)
-    if r-1 not in kids:
+    if r == 0:
         return 0
-    currKid = kids[r-1]
-    for i in range(1, l-1):
-        print(i)
-        #the last two parameters probably wrong
-        options.append(kShatter(G,d,u,r-1,l-i,t,k)
-        + kShatter(G,u,currKid,len(nx.neighbors(G,currKid))-1,i,t,k))
-    option1 = max(options)
+    currKid = kids[r - 1]
 
-    options = []  
+    options = []
+    opts = []  
+
+    for i in range(1, l-1):
+        options.append(kShatter(G,d,u,r-1,l-i,t,k) + kShatter(G,u,currKid,len(list(nx.neighbors(G,currKid)))-1,i,t,k))
+    
     for i in range(1,k):
-        print(i)
-        #again bounds here at end wrong
-        options.append(kShatter(G,u,currKid,len(nx.neighbors(G,currKid))-1,i,t,k))
-    option2 = kShatter(G,d,u,r-1,l,t,k)+G[u][currKid]['weight']+max(options)
+        opts.append(kShatter(G,u,currKid,len(list(nx.neighbors(G,currKid)))-1,i,t,k))
+    
+    option1 = max(options)
+    option2 = kShatter(G,d,u,r-1,l,t,k)+G[u][currKid]['weight']+max(opts)
     return max(option1, option2)
 
-if __name__ == '__main__':
-    randomG = nx.complete_graph(20)
-    for (u, v) in randomG.edges():
-        randomG[u][v]['weight'] = random.randint(1, 10)
 
-    tree = MST(randomG)
-    print(tree)
-    print(kShatter(tree, None, 0, len(list(tree.neighbors(0))), len(tree.nodes), 5, 7))
+def F(G, k, u, r, l, p):
+
+    s = 0
+    kids = list(G.neighbors(u))
+    if p:
+        kids.remove(p)
+    if l == 1:
+        for i in range(r+1):
+            s += G[u][kids[i]]["weight"]
+        return s
+    v = kids[r]
+    cv = len(list(G.neighbors(v)))-1
+    option1 = []
+    for m in range(1, l):
+        if r-1 >= 0:
+            option1.append(F(G, k, u, r-1, l-m, p) + F(G, k, v, cv, m, u))
+    o1 = min(option1)
+    option2 = []
+    for s in range(1,k):
+        option2.append(F(G,k,v,cv,s,u))
+    o2 = min(option2) + F(G, k, u, r-1, l, p) +G[u][v]['weight']
+    return min(o1,o2)
+
+#if __name__ == '__main__':
+randomG = nx.complete_graph(20)
+for (u, v) in randomG.edges():
+    randomG[u][v]['weight'] = random.randint(1, 10)
+print(randomG)
+
+tree2 = ms3(randomG, 4)
+print(tree2)
+nx.draw(tree2, with_labels = True)
+plt.show()
+#print(F(tree, 2, 0, len(list(tree.neighbors(0)))-1, len(list(tree.nodes)), None))
+
+
 
 def MSTStop(G):
     return -1
