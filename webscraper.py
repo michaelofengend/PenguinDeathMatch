@@ -56,7 +56,7 @@ def compareScores():
     for k in range(780):
         if id[k] == list(dict.keys())[k]:
             print(id[k], sc[k], list(dict.values())[k])
-            if sc[k] > list(dict.values())[k]:
+            if sc[k] * 1.4 > list(dict.values())[k]:
                 count += 1
     print(count)
 
