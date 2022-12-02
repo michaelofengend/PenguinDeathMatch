@@ -1,7 +1,6 @@
 from starter import *
 import networkx as nx
-from networkx.algorithms import bipartite
-import random
+from networkx.algorithms import approximation
 import algorithms
 
 """
@@ -31,11 +30,44 @@ try:
 except:
     print("No cycle")
 """
+"""
+def read_partition(G):
+    name = G.name
+    best = None
+    best_score = float('inf')
+    best_k = 0
+    for k in range(2, 13):
+        path = "./sample_partition_2/" + name + "_part" + str(k) + ".in"
+        with open(path) as fp:
+            arr = json.load(fp)
+        for i in range(len(arr)):
+            team = arr[i]["communityId"] + 1
+            G.nodes[i]['team'] = team
+        if score(G) <= best_score:
+            best = arr
+            best_score = score(G)
+            best_k = k
+            
+    for i in range(len(best)):
+        team = best[i]["communityId"] + 1
+        G.nodes[i]['team'] = team
+    print(k)
+    return G
 
-G = read_input('./inputs/small1.in')
-algorithms.read_partition(G)
-curr_score = score(G)
-print(curr_score)
+def color_MST(G):
+    colors = nx.coloring.greedy_color(G, strategy = 'random_sequential', interchange=True)
+    for c in colors.keys():
+        G.nodes[c]['team'] = colors[c]
+
+for _ in range(100):
+    G = read_input('./inputs/large1.in')
+    color_MST(G)
+    a=score(G)
+    if a < 3000:
+        print(G)
+        print(a)
+"""
+
 
 """
 count = 0

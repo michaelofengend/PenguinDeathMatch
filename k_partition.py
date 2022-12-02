@@ -19,12 +19,12 @@ class App:
             session.execute_write(self._load_graphml, name)
             session.execute_write(self._label_nodes)
             session.execute_write(self._create_graph)
-            for k in range(2, 27):
+            for k in range(2, 13):
                 result = session.execute_write(self._max_k_cut, k)
                 dump = []
                 for record in result:
                     dump.append(record.data())
-                with open("./sample_partition_2/" + name[:-8] + "_part" + str(k) + ".in", "w") as outfile:
+                with open("./sample_partition_3/" + name[:-8] + "_part" + str(k) + ".in", "w") as outfile:
                     json.dump(dump, outfile)
 
     @staticmethod
@@ -54,7 +54,7 @@ class App:
 
     @staticmethod
     def _max_k_cut(tx, k):
-        query = ("CALL gds.alpha.maxkcut.stream('g', {k:" + str(k) + ", relationshipWeightProperty:'weight', iterations : 24, vnsMaxNeighborhoodOrder : 10}) YIELD nodeId, communityId")
+        query = ("CALL gds.alpha.maxkcut.stream('g', {k:" + str(k) + ", relationshipWeightProperty:'weight', iterations : 30, vnsMaxNeighborhoodOrder : 50}) YIELD nodeId, communityId")
         result = tx.run(query)
         return [row for row in result]
 

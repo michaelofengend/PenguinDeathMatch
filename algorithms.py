@@ -7,6 +7,11 @@ from itertools import count
 import time
 from math import isnan
 import matplotlib.pyplot as plt
+import functools
+import numpy
+import sklearn.cluster
+from sklearn.cluster import SpectralClustering
+import scipy.sparse
 
 """
 IDEA:
@@ -96,7 +101,7 @@ def sets(G):
         Y = {n for n, is_top in c.items() if not is_top}
         return (X, Y) # Returns bi-partition of the graph
 
-def coloring_solution(G):
+def two_coloring_solution(G):
     max_st = nx.maximum_spanning_tree(G)
     cc_list = nx.connected_components(max_st) # Connected components in G and MST are the same
     t1_total = 0
@@ -136,6 +141,17 @@ def coloring_solution(G):
                     G.nodes[b]['team'] = 1
                     t1_total += 1
 
+"""
+General coloring solution
+"""
+def color_MST(G):
+    max_st = nx.maximum_spanning_tree(G, algorithm='prim')
+    highest_degree = (max(max_st.degree(), key = lambda x:x[1]))[1]
+    colors = nx.coloring.equitable_color(max_st, highest_degree + 1)
+    for c in colors.keys():
+        G.nodes[c]['team'] = colors[c]
+
+
 def read_partition(G):
     name = G.name
     best = None
@@ -154,7 +170,7 @@ def read_partition(G):
             best = arr
             best_score = score(G)
     for i in range(len(best)):
-        team = arr[i]["communityId"] + 1
+        team = best[i]["communityId"] + 1
         G.nodes[i]['team'] = team
     return G
 
@@ -313,44 +329,52 @@ def kShatter(G, d, u, r, l, t, k):
     option2 = kShatter(G,d,u,r-1,l,t,k)+G[u][currKid]['weight']+max(opts)
     return max(option1, option2)
 
-
-def F(G, k, u, r, l, p):
-
-    s = 0
+@functools.cache
+def F(G, k, u, r, l, prev):
     kids = list(G.neighbors(u))
-    if p:
-        kids.remove(p)
+    if prev:
+        kids.remove(prev)
+        
+     # Base case
+    sum = 0
     if l == 1:
-        for i in range(r+1):
-            s += G[u][kids[i]]["weight"]
-        return s
-    v = kids[r]
+        for i in kids:
+            sum += G[u][i]["weight"]
+        return sum
+
+    print(kids, r)
+    if r == 0: return float('inf')
+    v = kids[r-1]
+    print(u, v, r, l, prev)
     cv = len(list(G.neighbors(v)))-1
     option1 = []
     for m in range(1, l):
-        if r-1 >= 0:
-            option1.append(F(G, k, u, r-1, l-m, p) + F(G, k, v, cv, m, u))
-    o1 = min(option1)
+        option1.append(F(G, k, u, r-1, l-m, prev) + F(G, k, v, cv, m, u))
+    if not option1:
+        o1 = float('inf')
+    else:
+        o1 = min(option1)
     option2 = []
-    for s in range(1,k):
+    for s in range(1, k + 1):
         option2.append(F(G,k,v,cv,s,u))
-    o2 = min(option2) + F(G, k, u, r-1, l, p) +G[u][v]['weight']
+    o2 = min(option2) + F(G, k, u, r-1, l, prev) + G[u][v]['weight']
     return min(o1,o2)
 
+
+"""
 #if __name__ == '__main__':
 randomG = nx.complete_graph(20)
 for (u, v) in randomG.edges():
     randomG[u][v]['weight'] = random.randint(1, 10)
 print(randomG)
 
-tree2 = ms3(randomG, 4)
+tree2 = MST(randomG)
 print(tree2)
 nx.draw(tree2, with_labels = True)
 plt.show()
-#print(F(tree, 2, 0, len(list(tree.neighbors(0)))-1, len(list(tree.nodes)), None))
+print(F(tree2, 2, 0, len(list(tree2.neighbors(0)))-1, len(list(tree2.nodes)), None))
 
-
-
+"""
 def MSTStop(G):
     return -1
 def TSPapprox(G):
@@ -364,3 +388,16 @@ def teamDissolve(self, team):
 
 def Genetic(G):
     return -1
+
+def spectral(G, k):
+    adj_matrix = nx.to_numpy_matrix(G)
+    highest = adj_matrix.max()
+    n = adj_matrix.shape
+    x = numpy.empty(n)
+    x.fill(highest)
+    adj_matrix = x - adj_matrix
+    np.fill_diagonal(adj_matrix, 0)
+    adj_matrix[adj_matrix == highest] = 10000000000000
+    model = SpectralClustering(n_clusters=k, 
+        affinity='precomputed').fit(adj_matrix)
+    return model.labels_
