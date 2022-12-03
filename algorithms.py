@@ -259,6 +259,7 @@ def MST3(G, k):
             for node in edge[0:2]:
                 if node not in extra_nodes:
                     extra_nodes.append(node)
+        G.remove_nodes_from(extra_nodes)
     
     edges = iter(edges)
     
@@ -271,7 +272,6 @@ def MST3(G, k):
 
 def postprocessMST3(T, G, extra_nodes):
     teams = list(nx.connected_components(T))
-    new_edges = []
     for node in extra_nodes:
         scores = []
         i = 0
@@ -281,8 +281,8 @@ def postprocessMST3(T, G, extra_nodes):
                     scores.append(G[node][v]['weight'])
                 else:
                     scores[i] += G[node][v]['weight']
-            scores[i] = {scores[i]: [list(t)[0],i]}      
-            i+=1
+            scores[i] = {scores[i]: [list(t)[0],i]}
+            i += 1
         key = float('inf')
         val = float('inf')
         t = float('inf')
@@ -297,13 +297,6 @@ def postprocessMST3(T, G, extra_nodes):
         teams[t].add(val)
         
         T.add_edge(node, val, weight = G[node][val]['weight'])
-
-        # best_score = {float('inf'):0}
-        # for i in range(len(scores)):
-        #     best_score = min(best_score, scores[i], key = )
-
-        #best_score = min(scores, key= [list(x.keys())[0] for x in scores])
-        #G.add_edge(node, best_score.values()[0])
     return T
 
 
