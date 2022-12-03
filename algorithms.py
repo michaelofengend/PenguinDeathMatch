@@ -4,14 +4,17 @@ from networkx.utils import py_random_state
 import random
 from heapq import heappop, heappush
 from itertools import count
+import multiprocessing as mp
 import time
-from math import isnan
+from math import ceil
 import matplotlib.pyplot as plt
 import functools
 import numpy
 import sklearn.cluster
 from sklearn.cluster import SpectralClustering
 import scipy.sparse
+import itertools
+import pandas as pd
 
 """
 IDEA:
@@ -161,8 +164,6 @@ def read_partition(G):
         with open(path) as fp:
             arr = json.load(fp)
         size = arr[-1]["nodeId"] - arr[0]["nodeId"]
-        if size != 99 and size != 299 and size != 999:
-            print(path + "IS BADLY FORMED")
         for i in range(len(arr)):
             team = arr[i]["communityId"] + 1
             G.nodes[i]['team'] = team
@@ -187,94 +188,207 @@ def preprocessforMST(G):
     for u in G.nodes:
         for v in G.nodes:
             if u != v:
-                G.add_edge(u,v)
+                if not G.has_edge(u,v):
+                    G.add_edge(u,v, weight=0)
+    return G
 
 def MST(G):
     preprocessforMST(G)
     return nx.minimum_spanning_tree(G)
 
-def prim_mst_edges(G, k, minimum, weight="weight", keys=True, data=True, ignore_nan=False):
-    """Iterate over edges of Prim's algorithm min/max spanning tree.
-
-    Parameters
-    ----------
-    G : NetworkX Graph
-        The graph holding the tree of interest.
-
-    minimum : bool (default: True)
-        Find the minimum (True) or maximum (False) spanning tree.
-
-    weight : string (default: 'weight')
-        The name of the edge attribute holding the edge weights.
-
-    keys : bool (default: True)
-        If `G` is a multigraph, `keys` controls whether edge keys ar yielded.
-        Otherwise `keys` is ignored.
-
-    data : bool (default: True)
-        Flag for whether to yield edge attribute dicts.
-        If True, yield edges `(u, v, d)`, where `d` is the attribute dict.
-        If False, yield edges `(u, v)`.
-
-    ignore_nan : bool (default: False)
-        If a NaN is found as an edge weight normally an exception is raised.
-        If `ignore_nan is True` then that edge is ignored instead.
-
-    """
+def prim_mst_edges(G, k, weight="weight"):
     push = heappush
     pop = heappop
 
     nodes = set(G)
     c = count()
 
-    sign = 1 if minimum else -1
-    it = 0
+    nodesInMST = []
     while nodes:
         u = nodes.pop()
         frontier = []
         visited = {u}
         for v, d in G.adj[u].items():
-            wt = d.get(weight, 1) * sign
+            wt = d.get(weight, 1)
             push(frontier, (wt, next(c), u, v, d))
+        
         while nodes and frontier:
             W, _, u, v, d = pop(frontier)
             if v in visited or v not in nodes:
                 continue
-            it += 1
-            if it % k != 0:
-                yield u, v, d
+            if u not in nodesInMST:
+                nodesInMST.append(u)
+            if v not in nodesInMST:
+                nodesInMST.append(v)
+            yield u, v, d
+            #if len(list(G.nodes)) < k:
+            #if len(list(G.nodes)) < 2*k and len(list(G.nodes)) > k and not len(list(G.nodes)) == len(nodesInMST):
+            #    continue
+            if len(nodesInMST) == k or len(list(G.nodes)) == len(nodesInMST):
+                for i in nodesInMST:
+                    G.remove_node(i)
+                return
+            
+
             # update frontier
             visited.add(v)
             nodes.discard(v)
             for w, d2 in G.adj[v].items():
                 if w in visited:
                     continue
-                new_weight = d2.get(weight, 1) * sign
+                new_weight = d2.get(weight, 1)
                 push(frontier, (new_weight, next(c), v, w, d2))
-ALGORITHMS = {
-    "prim": prim_mst_edges,
-}
 
-def minimum_spanning_edges(G, k, algorithm="prim", weight="weight", keys=True, data=True, ignore_nan=False):
+def MST3(G, k):
+    extra_count = len(list(G.nodes)) % k - 1
+    
+    edges = prim_mst_edges(G, k, weight="weight")
 
-    try:
-        algo = ALGORITHMS[algorithm]
-    except KeyError as err:
-        msg = f"{algorithm} is not a valid choice for an algorithm."
-        raise ValueError(msg) from err
-    return algo(
-        G, k, minimum=True, weight=weight, keys=keys, data=data, ignore_nan=ignore_nan
-    )
-
-
-def ms3(G, k, weight="weight", algorithm="prim", ignore_nan=False):
-
-    edges = minimum_spanning_edges(G, k, algorithm, weight, keys=True, data=True, ignore_nan=ignore_nan)
+    edges = list(edges)
+    
+    l = 0
+    while l != len(edges):
+        l = len(edges)
+        edges.extend(list(prim_mst_edges(G, k, weight="weight")))
+    
+    extra_nodes = []
+    if extra_count != -1:
+        extra_edges = edges[-extra_count:]
+        edges = edges[0:-extra_count]
+        for edge in extra_edges:
+            for node in edge[0:2]:
+                if node not in extra_nodes:
+                    extra_nodes.append(node)
+    
+    edges = iter(edges)
+    
     T = G.__class__()  # Same graph class as G
     T.graph.update(G.graph)
     T.add_nodes_from(G.nodes.items())
     T.add_edges_from(edges)
+
+    return T, extra_nodes
+
+def postprocessMST3(T, G, extra_nodes):
+    teams = list(nx.connected_components(T))
+    new_edges = []
+    for node in extra_nodes:
+        scores = []
+        i = 0
+        for t in teams:
+            for v in t:
+                if len(scores) <= i:
+                    scores.append(G[node][v]['weight'])
+                else:
+                    scores[i] += G[node][v]['weight']
+            scores[i] = {scores[i]: [list(t)[0],i]}      
+            i+=1
+        key = float('inf')
+        val = float('inf')
+        t = float('inf')
+        for i in range(len(scores)):
+            x = list(scores[i].keys())[0]
+            y = list(scores[i].values())[0][0]
+            z = list(scores[i].values())[0][1]
+            if key >= x:
+                key = x
+                val = y
+                t = z
+        teams[t].add(val)
+        
+        T.add_edge(node, val, weight = G[node][val]['weight'])
+
+        # best_score = {float('inf'):0}
+        # for i in range(len(scores)):
+        #     best_score = min(best_score, scores[i], key = )
+
+        #best_score = min(scores, key= [list(x.keys())[0] for x in scores])
+        #G.add_edge(node, best_score.values()[0])
     return T
+
+
+def team_assign(T, G):
+    team_number = 1
+    for t in list(nx.connected_components(T)):
+        for i in t:
+            G.nodes[i]['team'] = team_number
+        team_number += 1
+    return score(G), G
+
+def runRandom():
+    randomG = nx.complete_graph(15)
+    for i in range(10):
+        x = random.randint(1, 10)
+        y = random.randint(1, 10)
+        if x != y and randomG.has_edge(x, y):
+            randomG.remove_edge(x,y)
+    for (u, v) in randomG.edges():
+        randomG[u][v]['weight'] = random.randint(1, 10)
+
+    graph = preprocessforMST(randomG)
+    graph_copy = graph.copy()
+    tree, extra_nodes = MST3(graph, 4)
+    post = postprocessMST3(tree, graph_copy, extra_nodes)
+    print(post)
+    pos=nx.spring_layout(post)
+    nx.draw_networkx(post, pos)
+    labels = nx.get_edge_attributes(post, 'weight')
+    nx.draw_networkx_edge_labels(post, pos, edge_labels=labels)
+    plt.show()
+
+def makeGraphs(jim):
+    for i in range(1, 261):
+        inputG2 = read_input('./inputs/small' + str(i) + '.in')
+        inputG = preprocessforMST(inputG2)
+        make_copy = inputG.copy()
+        tree, extra_nodes = MST3(inputG, jim)
+        if extra_nodes:
+            tree = postprocessMST3(tree, make_copy, extra_nodes)
+        #pos=nx.spring_layout(tree2)
+        #nx.draw_networkx(tree2, pos)
+        #labels = nx.get_edge_attributes(tree2, 'weight')
+        #nx.draw_networkx_edge_labels(tree2, pos, edge_labels=labels)
+        inputG1 = read_input('./inputs/small' + str(i) + '.in')
+        sc, graph = team_assign(tree, inputG1)
+        write_output(graph, './mst_take2/small' + str(i) + 'part' + str(jim) + '.out')
+    print('done' + str(jim))
+
+
+def runMultiProcess():
+    pool = mp.Pool(mp.cpu_count())
+    pool = mp.Pool()
+    res = pool.map(makeGraphs, [i for i in range(5, 61)])
+    pool.close()
+    pool.join()
+
+def scoreAll():
+    best = pd.read_csv('bestscores.csv')
+    id = best['Graph']
+    sc = best['Score']
+    sizes = ['small', 'medium', 'large']
+    dic = {}
+    for i in range(1, 261):
+        ls= []
+        for j in range(5, 61):
+            G  = read_input('./inputs/small' + str(i) + '.in')
+            newG = read_output(G, './mst_take2/small' + str(i) + 'part' + str(j) + '.out')
+            ls.append(score(newG))
+        dic['small' + str(i)] = min(ls)
+    coun = 0
+    for k in range(260):
+        if id[k] == list(dic.keys())[k]:
+            print(id[k], sc[k], list(dic.values())[k])
+            if sc[k] * 1.2 >= list(dic.values())[k]:
+                coun += 1
+    print(coun)
+
+if __name__ == '__main__':
+    scoreAll()
+        
+            
+#print(F(tree, 2, 0, len(list(tree.neighbors(0)))-1, len(list(tree.nodes)), None))
+
+
 
 #Inputs:
 #G = the graph
@@ -361,20 +475,7 @@ def F(G, k, u, r, l, prev):
     return min(o1,o2)
 
 
-"""
-#if __name__ == '__main__':
-randomG = nx.complete_graph(20)
-for (u, v) in randomG.edges():
-    randomG[u][v]['weight'] = random.randint(1, 10)
-print(randomG)
 
-tree2 = MST(randomG)
-print(tree2)
-nx.draw(tree2, with_labels = True)
-plt.show()
-print(F(tree2, 2, 0, len(list(tree2.neighbors(0)))-1, len(list(tree2.nodes)), None))
-
-"""
 def MSTStop(G):
     return -1
 def TSPapprox(G):
