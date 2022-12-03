@@ -15,7 +15,9 @@ import scipy.sparse
 import itertools
 import pandas as pd
 
-functions = ["mis_approx", "two_coloring_solution", "color_MST", "read_partition", "mst_stop1", "mst_stop2"]
+functions = ["mis_approx", "two_coloring_solution", "color_MST", "random_color", "read_partition"]
+random_funcs = ["mis_approx", "color_MST", "random_color"]
+
 """
 IDEA:
 Large is a sparse graph (1000 nodes with 10000 edges), so we do the following
@@ -148,11 +150,27 @@ def two_coloring_solution(G):
 General coloring solution
 """
 def color_MST(G):
-    max_st = nx.maximum_spanning_tree(G, algorithm='prim')
-    highest_degree = (max(max_st.degree(), key = lambda x:x[1]))[1]
-    colors = nx.coloring.equitable_color(max_st, highest_degree + 1)
+    for _ in range(50):
+        max_st = nx.maximum_spanning_tree(G, algorithm='prim')
+        highest_degree = (max(max_st.degree(), key = lambda x:x[1]))[1]
+        colors = nx.coloring.equitable_color(max_st, highest_degree + 1)
+        for c in colors.keys():
+            G.nodes[c]['team'] = colors[c]
+        new_score = score(G)
+
+
+def random_color(G):
+    best = float('inf')
+    best_coloring = None
+    colors = nx.coloring.greedy_color(G, strategy = 'random_sequential', interchange=True)
     for c in colors.keys():
         G.nodes[c]['team'] = colors[c]
+        new_score = score(G)
+        if new_score < best:
+            best = new_score
+            best_coloring = colors
+    for c in best_coloring.keys():
+        G.nodes[c]['team'] = best_coloring[c]
 
 def read_partition(G):
     name = G.name

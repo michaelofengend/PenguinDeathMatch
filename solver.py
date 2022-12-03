@@ -1,5 +1,7 @@
 from starter import *
 import algorithms as alg
+import WGraph
+from swaps import *
 
 # for every input
 # Call every algorithm on G
@@ -18,3 +20,8 @@ for size in ['small', 'medium', 'large']:
                 best_score = new_score
                 best_func = func
         print(best_score, best_func)
+
+a = WGraph(G)
+new_score, best_swap = swap(a, 100)
+a.score = new_score
+a.G.nodes[best_swap[0]] = [best_swap[1]]
