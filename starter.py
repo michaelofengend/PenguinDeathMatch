@@ -98,10 +98,6 @@ def score(G: nx.Graph, separated=False):
     k = np.max(teams)
     b = np.linalg.norm((counts / G.number_of_nodes()) - 1 / k, 2)
     C_w = sum(d for u, v, d in G.edges(data='weight') if output[u] == output[v])
-    print(counts)
-    print('k:', k)
-    print('C_w:', C_w)
-    print('b:', b)
     if separated:
         return C_w, K_COEFFICIENT * math.exp(K_EXP * k), math.exp(B_EXP * b)
     return C_w + K_COEFFICIENT * math.exp(K_EXP * k) + math.exp(B_EXP * b)

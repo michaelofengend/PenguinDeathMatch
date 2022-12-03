@@ -15,6 +15,7 @@ import scipy.sparse
 import itertools
 import pandas as pd
 
+functions = ["mis_approx", "two_coloring_solution", "color_MST", "read_partition", "mst_stop1", "mst_stop2"]
 """
 IDEA:
 Large is a sparse graph (1000 nodes with 10000 edges), so we do the following
@@ -30,7 +31,7 @@ Repeat for i from 1 to k:
     Remove I from S
 TODO: Balance the teams
 """
-def msi_approx(G):
+def mis_approx(G):
     teams = []
     G_copy = G.copy()
     average = 0
@@ -152,7 +153,6 @@ def color_MST(G):
     colors = nx.coloring.equitable_color(max_st, highest_degree + 1)
     for c in colors.keys():
         G.nodes[c]['team'] = colors[c]
-
 
 def read_partition(G):
     name = G.name
@@ -300,13 +300,11 @@ def postprocessMST3(T, G, extra_nodes):
     ######################################################################
 
     teams = list(nx.connected_components(T))
-    print('orig teams', teams)
     for i in range(len(teams)):
         for v in teams[i]:
             G.nodes[v]['team'] = i + 1
 
     for node in extra_nodes:
-        min_score = float('inf')
         potential_penalty = [0] * len(teams)
         
         for neighbor in G.neighbors(node):
@@ -316,8 +314,6 @@ def postprocessMST3(T, G, extra_nodes):
         
         best_team = np.argmin(potential_penalty)
         G.nodes[node]['team'] = best_team + 1
-    
-    
     
     return G
 
@@ -369,9 +365,38 @@ def makeGraphs(jim):
         #nx.draw_networkx_edge_labels(tree2, pos, edge_labels=labels)
         inputG1 = read_input('./inputs/small' + str(i) + '.in')
         sc, graph = team_assign(tree, inputG1)
-        write_output(graph, './mst_take2/small' + str(i) + 'part' + str(jim) + '.out')
+        write_output(graph, './mst_take3/small' + str(i) + 'part' + str(jim) + '.out')
     print('done' + str(jim))
 
+def mst_stop1(G):
+    best_score = float('inf')
+    best = 0
+    for i in range(5, 61):
+        read_output(G, './mst_take1/' + G.name + 'part' + str(i) + '.out')
+        if score(G) < best_score:
+            best_score = score(G)
+            best = i
+    read_output(G, './mst_take1/' + G.name + 'part' + str(best) + '.out')
+
+def mst_stop2(G):
+    best_score = float('inf')
+    best = 0
+    for i in range(5, 61):
+        read_output(G, './mst_take2/' + G.name + 'part' + str(i) + '.out')
+        if score(G) < best_score:
+            best_score = score(G)
+            best = i
+    read_output(G, './mst_take2/' + G.name + 'part' + str(best) + '.out')
+
+def mst_stop3(G):
+    best_score = float('inf')
+    best = 0
+    for i in range(5, 61):
+        read_output(G, './mst_take3/' + G.name + 'part' + str(i) + '.out')
+        if score(G) < best_score:
+            best_score = score(G)
+            best = i
+    read_output(G, './mst_take3/' + G.name + 'part' + str(best) + '.out')
 
 def runMultiProcess():
     pool = mp.Pool(mp.cpu_count())
@@ -387,10 +412,10 @@ def scoreAll():
     sizes = ['small', 'medium', 'large']
     dic = {}
     for i in range(1, 261):
+        G = read_input('./inputs/small' + str(i) + '.in')
         ls= []
         for j in range(5, 61):
-            G  = read_input('./inputs/small' + str(i) + '.in')
-            newG = read_output(G, './mst_take2/small' + str(i) + 'part' + str(j) + '.out')
+            newG = read_output(G, './mst_take3/small' + str(i) + 'part' + str(j) + '.out')
             ls.append(score(newG))
         dic['small' + str(i)] = min(ls)
     coun = 0
@@ -403,6 +428,8 @@ def scoreAll():
 
 if __name__ == '__main__':
     scoreAll()
+
+
         
             
 #print(F(tree, 2, 0, len(list(tree.neighbors(0)))-1, len(list(tree.nodes)), None))
