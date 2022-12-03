@@ -30,7 +30,7 @@ try:
 except:
     print("No cycle")
 """
-"""
+
 def read_partition(G):
     name = G.name
     best = None
@@ -58,15 +58,28 @@ def color_MST(G):
     colors = nx.coloring.greedy_color(G, strategy = 'random_sequential', interchange=True)
     for c in colors.keys():
         G.nodes[c]['team'] = colors[c]
-
+"""
+best = float('inf')
+best_G = None
 for _ in range(100):
     G = read_input('./inputs/large1.in')
     color_MST(G)
-    a=score(G)
-    if a < 3000:
-        print(G)
-        print(a)
+    a = score(G)
+    if a < best:
+        best = a
+        best_G = G
+
+print(best)
+print([G.nodes[i]['team'] for i in range(len(G.nodes))])
 """
+def min_clique_cover(G):
+    v_set = set()
+    G_comp = nx.complement(G)
+    for c in nx.find_cliques(G_comp):
+        print(c)
+
+G = read_input('./inputs/large1.in')
+min_clique_cover(G)
 
 
 """

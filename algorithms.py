@@ -38,8 +38,8 @@ def msi_approx(G):
         teams.append(set(curr_msi))
         average = sum(len(t) for t in teams) / len(teams)
     s = G_copy.nodes()
-    G.remove_nodes_from(s)
-    i = 0
+    teams.append(s)
+    i = 1
     for team in teams:
         for n in team:
             G.nodes[n]['team'] = i
@@ -401,3 +401,8 @@ def spectral(G, k):
     model = SpectralClustering(n_clusters=k, 
         affinity='precomputed').fit(adj_matrix)
     return model.labels_
+
+def min_clique_cover(G):
+    G_comp = nx.complement(G)
+    for c in nx.find_cliques(G):
+        print(len(c))

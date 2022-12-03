@@ -98,9 +98,6 @@ def score(G: nx.Graph, separated=False):
     k = np.max(teams)
     b = np.linalg.norm((counts / G.number_of_nodes()) - 1 / k, 2)
     C_w = sum(d for u, v, d in G.edges(data='weight') if output[u] == output[v])
-    print(C_w)
-    print(K_COEFFICIENT * math.exp(K_EXP * k))
-    print(math.exp(B_EXP * b))
     if separated:
         return C_w, K_COEFFICIENT * math.exp(K_EXP * k), math.exp(B_EXP * b)
     return C_w + K_COEFFICIENT * math.exp(K_EXP * k) + math.exp(B_EXP * b)
@@ -173,15 +170,3 @@ def tar(out_dir, overwrite=False):
         'File already exists and overwrite set to False. Move file or set overwrite to True to proceed.'
     with tarfile.open(path, 'w') as fp:
         fp.add(out_dir)
-
-# CALL: read_partition(networkx object, filepath)
-def read_partition(G, path: str):
-    with open(path) as fp:
-        arr = json.load(fp)
-    size = arr[-1]["nodeId"] - arr[0]["nodeId"]
-    if size != 99 and size != 299 and size != 999:
-        print(path + "IS BADLY FORMED")
-    for i in range(len(arr)):
-        team = arr[i]["communityId"] + 1
-        G.nodes[i]['team'] = team
-    return G
