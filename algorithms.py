@@ -1,6 +1,5 @@
 from starter import *
 import networkx as nx
-from networkx.utils import py_random_state
 import random
 from heapq import heappop, heappush
 from itertools import count
@@ -259,7 +258,6 @@ def MST3(G, k):
             for node in edge[0:2]:
                 if node not in extra_nodes:
                     extra_nodes.append(node)
-        G.remove_nodes_from(extra_nodes)
     
     edges = iter(edges)
     
@@ -267,10 +265,11 @@ def MST3(G, k):
     T.graph.update(G.graph)
     T.add_nodes_from(G.nodes.items())
     T.add_edges_from(edges)
-
+    T.remove_nodes_from(extra_nodes)
     return T, extra_nodes
 
 def postprocessMST3(T, G, extra_nodes):
+    """
     teams = list(nx.connected_components(T))
     for node in extra_nodes:
         scores = []
@@ -297,7 +296,30 @@ def postprocessMST3(T, G, extra_nodes):
         teams[t].add(val)
         
         T.add_edge(node, val, weight = G[node][val]['weight'])
-    return T
+    """
+    ######################################################################
+
+    teams = list(nx.connected_components(T))
+    print('orig teams', teams)
+    for i in range(len(teams)):
+        for v in teams[i]:
+            G.nodes[v]['team'] = i + 1
+
+    for node in extra_nodes:
+        min_score = float('inf')
+        potential_penalty = [0] * len(teams)
+        
+        for neighbor in G.neighbors(node):
+            if G.nodes[neighbor].get('team'):
+                neighbor_team = G.nodes[neighbor]['team']
+                potential_penalty[neighbor_team - 1] += G[node][neighbor]['weight']
+        
+        best_team = np.argmin(potential_penalty)
+        G.nodes[node]['team'] = best_team + 1
+    
+    
+    
+    return G
 
 
 def team_assign(T, G):
@@ -308,7 +330,8 @@ def team_assign(T, G):
         team_number += 1
     return score(G), G
 
-def runRandom():
+def runRandom(randomG):
+    """
     randomG = nx.complete_graph(15)
     for i in range(10):
         x = random.randint(1, 10)
@@ -317,17 +340,20 @@ def runRandom():
             randomG.remove_edge(x,y)
     for (u, v) in randomG.edges():
         randomG[u][v]['weight'] = random.randint(1, 10)
-
+    """
     graph = preprocessforMST(randomG)
     graph_copy = graph.copy()
-    tree, extra_nodes = MST3(graph, 4)
+    tree, extra_nodes = MST3(graph, 24)
     post = postprocessMST3(tree, graph_copy, extra_nodes)
     print(post)
+    """
     pos=nx.spring_layout(post)
     nx.draw_networkx(post, pos)
     labels = nx.get_edge_attributes(post, 'weight')
     nx.draw_networkx_edge_labels(post, pos, edge_labels=labels)
     plt.show()
+    """
+    return post
 
 def makeGraphs(jim):
     for i in range(1, 261):
