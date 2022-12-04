@@ -7,8 +7,6 @@ class WGraph:
         Parameters:
         G : networkx Graph object
             Needs to be initialized first
-        name : String
-            Name of G (e.g. medium32)
         init_method : String
             Name of method used to initialize team assignments
         """

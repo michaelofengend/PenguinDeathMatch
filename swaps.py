@@ -3,27 +3,32 @@ import random
 from networkx.utils import py_random_state, BinaryHeap
 import WGraph
 
-def swap(G: WGraph, window):
+def swap(WG: WGraph, window):
     """
-    Returns: (n, j)
+    Returns: score, (n, j)
     Where swapping node n to team j results in a reduction in score.
     """
-    baseline = G
     counter = 0
     swaps = BinaryHeap()
     while counter < window:
-        swap_node = random.randint(0, len(G.nodes) - 1)
-        team_i = G.nodes[swap_node]['team']
-        team_j = random.randint(1, k)
+        swap_node = random.randint(0, len(WG.G.nodes) - 1)
+        team_i = WG.nodes[swap_node]['team']
+        team_j = random.randint(1, WG.k)
         if team_i != team_j:
-            new_score = swap_score_change(G, swap_node, team_i, team_j) # Calculates new score without mutating the object
-            if new_score > G.cost:
+            new_score, new_C_w, new_norm, new_b_i, new_b_j = swap_score_change(WG, swap_node, team_i, team_j) # Calculates new score without mutating the object
+            if new_score > WG.cost:
                 continue
-            swaps.insert(new_score, (swap_node, team_j)) # Pushes tuple (swap_node, team_j) with value new_score to heap swaps
+            swaps.insert(new_score, (swap_node, team_i, team_j, new_C_w, new_norm, new_b_i, new_b_j)) # Pushes tuple (swap_node, team_j) with value new_score to heap swaps
             counter += 1
     try:
-        best_score, best_swap = swaps.min()
-        return best_score, best_swap
+        best_score, new_info = swaps.min()
+        swap_node, team_i, team_j, new_C_w, new_norm, new_b_i, new_b_j = new_info
+        WG.C_w = new_C_w
+        WG.bnorm = new_norm
+        WG.b[team_i] = new_b_i
+        WG.b[team_j] = new_b_j
+        WG.cost = new_score
+        WG.G.nodes[swap_node]['team'] = team_j
     except nx.NetworkXError:
         return None # No improvement found; in this current implementation, will not return None
 
@@ -71,12 +76,12 @@ def swap_score_change(G, v, i, j):
     j : INTEGER
         New team of v
     Description:
-    Returns new score of the swap.
+    Returns new score of the swap, the new C_w score, and the new norm.
     """
     b, b2 = G.b, G.bnorm
-    new_C_p, new_norm = C_p_update(G, b, b2, i, j)
+    new_C_p, new_norm, new_b_i, new_b_j = C_p_update(G, b, b2, i, j)
     new_C_w = C_w_update(G, v, i, j)   # TODO: MAKE edge_cost FIELD FOR G
-    return new_C_w + 100 * math.exp(G.k / 2) + new_C_p
+    return new_C_w + 100 * math.exp(G.k / 2) + new_C_p, new_C_w, new_norm, new_b_i, new_b_j
 
 # Returns updated score of C_p (team evenness cost)
 def C_p_update(G: WGraph, b, b2, i, j):
@@ -101,7 +106,7 @@ def C_p_update(G: WGraph, b, b2, i, j):
         b2^2 - (b[i])^2 - (b[j])^2 + new_b_i^2 + new_b_j^2
     )
     new_C_p_score = math.exp(70*new_norm)
-    return new_C_p_score, new_norm
+    return new_C_p_score, new_norm, new_b_i, new_b_j
 
 # Returns updated score of C_w (intra-team conflict cost)
 def C_w_update(WG: WGraph, v, i, j):

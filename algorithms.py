@@ -1,6 +1,5 @@
 from starter import *
 import networkx as nx
-from networkx.utils import py_random_state
 import random
 from heapq import heappop, heappush
 from itertools import count
@@ -17,6 +16,9 @@ import itertools
 import pandas as pd
 import operator
 
+functions = ["mis_approx", "two_coloring_solution", "color_MST", "random_color", "read_partition"]
+random_funcs = ["mis_approx", "color_MST", "random_color"]
+
 """
 IDEA:
 Large is a sparse graph (1000 nodes with 10000 edges), so we do the following
@@ -32,7 +34,7 @@ Repeat for i from 1 to k:
     Remove I from S
 TODO: Balance the teams
 """
-def msi_approx(G):
+def mis_approx(G):
     teams = []
     G_copy = G.copy()
     average = 0
@@ -149,12 +151,27 @@ def two_coloring_solution(G):
 General coloring solution
 """
 def color_MST(G):
-    max_st = nx.maximum_spanning_tree(G, algorithm='prim')
-    highest_degree = (max(max_st.degree(), key = lambda x:x[1]))[1]
-    colors = nx.coloring.equitable_color(max_st, highest_degree + 1)
+    for _ in range(50):
+        max_st = nx.maximum_spanning_tree(G, algorithm='prim')
+        highest_degree = (max(max_st.degree(), key = lambda x:x[1]))[1]
+        colors = nx.coloring.equitable_color(max_st, highest_degree + 1)
+        for c in colors.keys():
+            G.nodes[c]['team'] = colors[c]
+        new_score = score(G)
+
+
+def random_color(G):
+    best = float('inf')
+    best_coloring = None
+    colors = nx.coloring.greedy_color(G, strategy = 'random_sequential', interchange=True)
     for c in colors.keys():
         G.nodes[c]['team'] = colors[c]
-
+        new_score = score(G)
+        if new_score < best:
+            best = new_score
+            best_coloring = colors
+    for c in best_coloring.keys():
+        G.nodes[c]['team'] = best_coloring[c]
 
 def read_partition(G):
     name = G.name
@@ -260,7 +277,6 @@ def MST3(G, k):
             for node in edge[0:2]:
                 if node not in extra_nodes:
                     extra_nodes.append(node)
-        G.remove_nodes_from(extra_nodes)
     
     edges = iter(edges)
     
@@ -268,10 +284,11 @@ def MST3(G, k):
     T.graph.update(G.graph)
     T.add_nodes_from(G.nodes.items())
     T.add_edges_from(edges)
-
+    T.remove_nodes_from(extra_nodes)
     return T, extra_nodes
 
 def postprocessMST3(T, G, extra_nodes):
+    """
     teams = list(nx.connected_components(T))
     for node in extra_nodes:
         scores = []
@@ -298,7 +315,26 @@ def postprocessMST3(T, G, extra_nodes):
         teams[t].add(val)
         
         T.add_edge(node, val, weight = G[node][val]['weight'])
-    return T
+    """
+    ######################################################################
+
+    teams = list(nx.connected_components(T))
+    for i in range(len(teams)):
+        for v in teams[i]:
+            G.nodes[v]['team'] = i + 1
+
+    for node in extra_nodes:
+        potential_penalty = [0] * len(teams)
+        
+        for neighbor in G.neighbors(node):
+            if G.nodes[neighbor].get('team'):
+                neighbor_team = G.nodes[neighbor]['team']
+                potential_penalty[neighbor_team - 1] += G[node][neighbor]['weight']
+        
+        best_team = np.argmin(potential_penalty)
+        G.nodes[node]['team'] = best_team + 1
+    
+    return G
 
 
 def team_assign(T, G):
@@ -311,7 +347,8 @@ def team_assign(T, G):
         team_number += 1
     return score(G), G, team_arr
 
-def runRandom():
+def runRandom(randomG):
+    """
     randomG = nx.complete_graph(15)
     for i in range(10):
         x = random.randint(1, 10)
@@ -320,17 +357,20 @@ def runRandom():
             randomG.remove_edge(x,y)
     for (u, v) in randomG.edges():
         randomG[u][v]['weight'] = random.randint(1, 10)
-
+    """
     graph = preprocessforMST(randomG)
     graph_copy = graph.copy()
-    tree, extra_nodes = MST3(graph, 4)
+    tree, extra_nodes = MST3(graph, 24)
     post = postprocessMST3(tree, graph_copy, extra_nodes)
     print(post)
+    """
     pos=nx.spring_layout(post)
     nx.draw_networkx(post, pos)
     labels = nx.get_edge_attributes(post, 'weight')
     nx.draw_networkx_edge_labels(post, pos, edge_labels=labels)
     plt.show()
+    """
+    return post
 
 def makeGraphs():
     lis = {'small': range(5, 61), 'medium': range(16, 151), 'large': range(50, 501)}
@@ -359,6 +399,52 @@ def makeGraphs():
                 json.dump(best_team_arr, fp)
         print('done' + str(k))
 makeGraphs()
+def makeGraphs(jim):
+    for i in range(1, 261):
+        inputG2 = read_input('./inputs/small' + str(i) + '.in')
+        inputG = preprocessforMST(inputG2)
+        make_copy = inputG.copy()
+        tree, extra_nodes = MST3(inputG, jim)
+        if extra_nodes:
+            tree = postprocessMST3(tree, make_copy, extra_nodes)
+        #pos=nx.spring_layout(tree2)
+        #nx.draw_networkx(tree2, pos)
+        #labels = nx.get_edge_attributes(tree2, 'weight')
+        #nx.draw_networkx_edge_labels(tree2, pos, edge_labels=labels)
+        inputG1 = read_input('./inputs/small' + str(i) + '.in')
+        sc, graph = team_assign(tree, inputG1)
+        write_output(graph, './mst_take3/small' + str(i) + 'part' + str(jim) + '.out')
+    print('done' + str(jim))
+
+def mst_stop1(G):
+    best_score = float('inf')
+    best = 0
+    for i in range(5, 61):
+        read_output(G, './mst_take1/' + G.name + 'part' + str(i) + '.out')
+        if score(G) < best_score:
+            best_score = score(G)
+            best = i
+    read_output(G, './mst_take1/' + G.name + 'part' + str(best) + '.out')
+
+def mst_stop2(G):
+    best_score = float('inf')
+    best = 0
+    for i in range(5, 61):
+        read_output(G, './mst_take2/' + G.name + 'part' + str(i) + '.out')
+        if score(G) < best_score:
+            best_score = score(G)
+            best = i
+    read_output(G, './mst_take2/' + G.name + 'part' + str(best) + '.out')
+
+def mst_stop3(G):
+    best_score = float('inf')
+    best = 0
+    for i in range(5, 61):
+        read_output(G, './mst_take3/' + G.name + 'part' + str(i) + '.out')
+        if score(G) < best_score:
+            best_score = score(G)
+            best = i
+    read_output(G, './mst_take3/' + G.name + 'part' + str(best) + '.out')
 
 def runMultiProcess():
     pool = mp.Pool(mp.cpu_count())
@@ -373,10 +459,10 @@ def scoreAll():
     sizes = ['small', 'medium', 'large']
     dic = {}
     for i in range(1, 261):
+        G = read_input('./inputs/small' + str(i) + '.in')
         ls= []
         for j in range(5, 61):
-            G  = read_input('./inputs/small' + str(i) + '.in')
-            newG = read_output(G, './mst_take2/small' + str(i) + 'part' + str(j) + '.out')
+            newG = read_output(G, './mst_take3/small' + str(i) + 'part' + str(j) + '.out')
             ls.append(score(newG))
         dic['small' + str(i)] = min(ls)
     coun = 0
@@ -389,6 +475,9 @@ def scoreAll():
 
 if __name__ == '__main__':
     makeGraphs()
+    scoreAll()
+
+
         
             
 #print(F(tree, 2, 0, len(list(tree.neighbors(0)))-1, len(list(tree.nodes)), None))
