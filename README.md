@@ -8,4 +8,4 @@ TO IMPROVE OUTPUTS: Run random_imp.py. It runs randomized algorithms a large num
 To generate MST stop outputs, call makeGraphs in algorithms.py.
 
 To generate sample partitions,
-Create a Neo4j Desktop instance. In the database, move all graphs in graphml format (pre-generated in GMLinput) to $Database directory$/import. Then, run partition_generator.py.
+Create a Neo4j Desktop instance with password 1234. Download APOC and GDS library plugins. Set apoc.import.file.enabled=true in configurations. In the database, move all graphs in graphml format (pre-generated in GMLinput) to $Database directory$/import. Then, run partition_generator.py.

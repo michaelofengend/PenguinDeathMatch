@@ -5,7 +5,7 @@ import multiprocessing as mp
 sizes = ['small', 'medium', 'large']
 
 def runIMP(i):
-        size = 'medium'
+        size = 'large' # Change to small and medium when needed
         G = read_input('./inputs/' + size + str(i) + '.in')
         curr = read_output(G, './outputs/' + size + str(i) + '.out')
         curr_score = score(curr)
