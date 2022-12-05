@@ -2,6 +2,8 @@ from starter import *
 import networkx as nx
 from networkx.algorithms import approximation
 import algorithms
+import WGraph
+import swaps
 
 """
 IGNORE THIS FILE
@@ -74,8 +76,13 @@ print([G.nodes[i]['team'] for i in range(len(G.nodes))])
 """
 
 G = read_input('./inputs/small1.in')
-post = algorithms.runRandom(G)
-print(score(post))
+algorithms.read_partition(G)
+WG = WGraph.WGraph(G)
+print(WG.cost)
+new_best = swaps.swap(WG, 100, 100)
+print(new_best.cost)
+G = new_best.graph
+print([G.nodes[v]['team'] for v in range(G.number_of_nodes())])
 
 """
 def min_clique_cover(G):

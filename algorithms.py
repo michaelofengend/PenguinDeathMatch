@@ -14,8 +14,9 @@ from sklearn.cluster import SpectralClustering
 import scipy.sparse
 import itertools
 import pandas as pd
+import operator
 
-functions = ["mis_approx", "two_coloring_solution", "color_MST", "random_color", "read_partition"]
+functions = ["mis_approx", "two_coloring_solution", "color_MST", "random_color", "read_partition", "spectral"]
 random_funcs = ["mis_approx", "color_MST", "random_color"]
 
 """
@@ -330,11 +331,13 @@ def postprocessMST3(T, G, extra_nodes):
 
 def team_assign(T, G):
     team_number = 1
+    team_arr = [0] * G.number_of_nodes()
     for t in list(nx.connected_components(T)):
         for i in t:
             G.nodes[i]['team'] = team_number
+            team_arr[i] = team_number
         team_number += 1
-    return score(G), G
+    return score(G), G, team_arr
 
 def runRandom(randomG):
     """
@@ -360,6 +363,33 @@ def runRandom(randomG):
     plt.show()
     """
     return post
+
+def makeGraphs():
+    lis = {'small': range(5, 61), 'medium': range(16, 151), 'large': range(50, 501)}
+    for size in lis.keys():
+        for i in range(1, 261):
+            best_score = float('inf')
+            best_team_arr = None
+            for k in lis[size]:
+                inputG2 = read_input('./inputs/' + size + str(i) + '.in')
+                inputG1 = inputG2.copy()
+                inputG = preprocessforMST(inputG2)
+                make_copy = inputG.copy()
+                tree, extra_nodes = MST3(inputG, k)
+                if extra_nodes:
+                    tree = postprocessMST3(tree, make_copy, extra_nodes)
+                #pos=nx.spring_layout(tree2)
+                #nx.draw_networkx(tree2, pos)
+                #labels = nx.get_edge_attributes(tree2, 'weight')
+                #nx.draw_networkx_edge_labels(tree2, pos, edge_labels=labels)
+                sc, graph, team_arr = team_assign(tree, inputG1)
+                if sc < best_score:
+                    best_score = sc
+                    best_team_arr = team_arr
+            print(best_score)
+            with open('./mst_taketwo/' + size + str(i) + '.out', 'w') as fp:
+                json.dump(best_team_arr, fp)
+        print('done' + str(k))
 
 def makeGraphs(jim):
     for i in range(1, 261):
@@ -410,10 +440,9 @@ def mst_stop3(G):
 
 def runMultiProcess():
     pool = mp.Pool(mp.cpu_count())
-    pool = mp.Pool()
-    res = pool.map(makeGraphs, [i for i in range(5, 61)])
-    pool.close()
-    pool.join()
+
+
+
 
 def scoreAll():
     best = pd.read_csv('bestscores.csv')
@@ -437,6 +466,7 @@ def scoreAll():
     print(coun)
 
 if __name__ == '__main__':
+    makeGraphs()
     scoreAll()
 
 
@@ -554,9 +584,9 @@ def spectral(G, k):
     x.fill(highest)
     adj_matrix = x - adj_matrix
     np.fill_diagonal(adj_matrix, 0)
-    adj_matrix[adj_matrix == highest] = 10000000000000
+    scaled = np.multiply(adj_matrix, 100)
     model = SpectralClustering(n_clusters=k, 
-        affinity='precomputed').fit(adj_matrix)
+        affinity='precomputed').fit(scaled)
     return model.labels_
 
 def min_clique_cover(G):
