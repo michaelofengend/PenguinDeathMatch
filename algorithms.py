@@ -7,7 +7,7 @@ import functools
 import numpy
 from sklearn.cluster import SpectralClustering
 
-functions = ["mis_approx", "two_coloring_solution", "color_MST", "random_color", "read_partition", "spectral", "mst_stop1"]
+functions = ["mis_approx", "two_coloring_solution", "color_MST", "random_color", "read_partition", "mst_stop1"]
 random_funcs = ["mis_approx", "random_color"]
 
 """

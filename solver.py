@@ -10,7 +10,7 @@ warnings.filterwarnings("ignore")
 # Call every algorithm on G
 
 for size in ['large']:
-    for i in range(181, 261):
+    for i in range(229, 261):
         G = read_input('./inputs/' + size + str(i) + '.in')
         all_funcs = alg.functions
         best_score = float('inf')
