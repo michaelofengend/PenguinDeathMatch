@@ -54,7 +54,7 @@ class App:
 
     @staticmethod
     def _max_k_cut(tx, k):
-        query = ("CALL gds.alpha.maxkcut.stream('g', {k:" + str(k) + ", relationshipWeightProperty:'weight', iterations : 30, vnsMaxNeighborhoodOrder : 20}) YIELD nodeId, communityId")
+        query = ("CALL gds.alpha.maxkcut.stream('g', {k:" + str(k) + ", relationshipWeightProperty:'weight'}) YIELD nodeId, communityId")
         result = tx.run(query)
         return [row for row in result]
 

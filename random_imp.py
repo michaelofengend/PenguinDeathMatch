@@ -5,7 +5,7 @@ import multiprocessing as mp
 sizes = ['small', 'medium', 'large']
 
 def runIMP(i):
-        size = 'large'
+        size = 'medium'
         G = read_input('./inputs/' + size + str(i) + '.in')
         curr = read_output(G, './outputs/' + size + str(i) + '.out')
         curr_score = score(curr)
@@ -14,7 +14,7 @@ def runIMP(i):
         best_score = float('inf')
         best_assignment = None
         for func in all_randoms:
-            for _ in range(50):
+            for _ in range(100):
                 init_func = getattr(algorithms, func)
                 init_func(G)
                 new_score = score(G)
