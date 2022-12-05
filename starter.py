@@ -2,8 +2,6 @@ import networkx as nx
 import numpy as np
 import os
 import json
-import matplotlib.pyplot as plt
-from matplotlib import cm
 import math
 from pathlib import Path
 from tqdm.auto import tqdm

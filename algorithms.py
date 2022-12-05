@@ -1,20 +1,11 @@
 from starter import *
 import networkx as nx
-import random
 from heapq import heappop, heappush
 from itertools import count
 import multiprocessing as mp
-import time
-from math import ceil
-import matplotlib.pyplot as plt
 import functools
 import numpy
-import sklearn.cluster
 from sklearn.cluster import SpectralClustering
-import scipy.sparse
-import itertools
-import pandas as pd
-import operator
 
 functions = ["mis_approx", "two_coloring_solution", "color_MST", "random_color", "read_partition", "spectral"]
 random_funcs = ["mis_approx", "color_MST", "random_color"]
@@ -576,7 +567,7 @@ def teamDissolve(self, team):
 def Genetic(G):
     return -1
 
-def spectral(G, k):
+def spectral_k(G, k):
     adj_matrix = nx.to_numpy_matrix(G)
     highest = adj_matrix.max()
     n = adj_matrix.shape
@@ -588,6 +579,20 @@ def spectral(G, k):
     model = SpectralClustering(n_clusters=k, 
         affinity='precomputed').fit(scaled)
     return model.labels_
+
+def spectral(G):
+    best = float('inf')
+    best_team = None
+    for i in range(1, 19):
+        team_vec = spectral_k(G, i)
+        nx.set_node_attributes(G, {v: team_vec[v] for v in G}, 'team')
+        new_score = score(G)
+        if new_score < best:
+            best = new_score
+            best_team = team_vec
+    nx.set_node_attributes(G, {v: best_team[v] for v in G}, 'team')
+        
+
 
 def min_clique_cover(G):
     G_comp = nx.complement(G)

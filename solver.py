@@ -19,7 +19,10 @@ for size in ['small', 'medium', 'large']:
             if new_score < best_score:
                 best_score = new_score
                 best_func = func
+                best_assignment = [G.nodes[v]['team'] for v in range(G.number_of_nodes())]
         print(size + str(i), best_score, best_func)
+        with open('./outputs/' + size + str(i) + '.out', 'w') as fp:
+            json.dump(best_assignment, fp)
 """
 G = read_input('./inputs/small1.in')
 alg.read_partition(G)
