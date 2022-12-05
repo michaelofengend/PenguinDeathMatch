@@ -2,11 +2,15 @@ from starter import *
 import algorithms as alg
 import WGraph
 from swaps import *
+import warnings
+
+warnings.filterwarnings("ignore")
 
 # for every input
 # Call every algorithm on G
-for size in ['small', 'medium', 'large']:
-    for i in range(1, 261):
+
+for size in ['large']:
+    for i in range(181, 261):
         G = read_input('./inputs/' + size + str(i) + '.in')
         all_funcs = alg.functions
         best_score = float('inf')
@@ -23,13 +27,3 @@ for size in ['small', 'medium', 'large']:
         print(size + str(i), best_score, best_func)
         with open('./outputs/' + size + str(i) + '.out', 'w') as fp:
             json.dump(best_assignment, fp)
-"""
-G = read_input('./inputs/small1.in')
-alg.read_partition(G)
-# Sample swap
-print('before', score(G))
-a = WGraph.WGraph(G)
-for _ in range(1):
-    swap(a, 10000)
-print('after', score(a.graph))
-"""

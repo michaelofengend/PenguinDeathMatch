@@ -7,8 +7,8 @@ import functools
 import numpy
 from sklearn.cluster import SpectralClustering
 
-functions = ["mis_approx", "two_coloring_solution", "color_MST", "random_color", "read_partition", "spectral"]
-random_funcs = ["mis_approx", "color_MST", "random_color"]
+functions = ["mis_approx", "two_coloring_solution", "color_MST", "random_color", "read_partition", "spectral", "mst_stop1"]
+random_funcs = ["mis_approx", "random_color"]
 
 """
 IDEA:
@@ -144,24 +144,19 @@ def color_MST(G):
 
 
 def random_color(G):
-    best = float('inf')
-    best_coloring = None
     colors = nx.coloring.greedy_color(G, strategy = 'random_sequential', interchange=True)
     for c in colors.keys():
-        G.nodes[c]['team'] = colors[c]
-        new_score = score(G)
-        if new_score < best:
-            best = new_score
-            best_coloring = colors
-    for c in best_coloring.keys():
-        G.nodes[c]['team'] = best_coloring[c]
+        G.nodes[c]['team'] = colors[c] + 1
 
 def read_partition(G):
     name = G.name
     best = None
     best_score = float('inf')
-    for k in range(2, 18):
-        path = "./sample_partition_3/" + name + "_part" + str(k) + ".in"
+    for k in range(2, 19):
+        if 'small' not in name:
+            path = path = "./sample_partition_2/" + name + "_part" + str(k) + ".in"
+        else:
+            path = "./sample_partition_3/" + name + "_part" + str(k) + ".in"
         with open(path) as fp:
             arr = json.load(fp)
         size = arr[-1]["nodeId"] - arr[0]["nodeId"]
@@ -400,34 +395,10 @@ def makeGraphs(jim):
     print('done' + str(jim))
 
 def mst_stop1(G):
-    best_score = float('inf')
-    best = 0
-    for i in range(5, 61):
-        read_output(G, './mst_take1/' + G.name + 'part' + str(i) + '.out')
-        if score(G) < best_score:
-            best_score = score(G)
-            best = i
-    read_output(G, './mst_take1/' + G.name + 'part' + str(best) + '.out')
+    read_output(G, './mst_takeone/' + G.name + '.out')
 
 def mst_stop2(G):
-    best_score = float('inf')
-    best = 0
-    for i in range(5, 61):
-        read_output(G, './mst_take2/' + G.name + 'part' + str(i) + '.out')
-        if score(G) < best_score:
-            best_score = score(G)
-            best = i
-    read_output(G, './mst_take2/' + G.name + 'part' + str(best) + '.out')
-
-def mst_stop3(G):
-    best_score = float('inf')
-    best = 0
-    for i in range(5, 61):
-        read_output(G, './mst_take3/' + G.name + 'part' + str(i) + '.out')
-        if score(G) < best_score:
-            best_score = score(G)
-            best = i
-    read_output(G, './mst_take3/' + G.name + 'part' + str(best) + '.out')
+    read_output(G, './mst_taketwo/' + G.name + '.out')
 
 def runMultiProcess():
     pool = mp.Pool(mp.cpu_count())
@@ -583,14 +554,14 @@ def spectral_k(G, k):
 def spectral(G):
     best = float('inf')
     best_team = None
-    for i in range(1, 19):
+    for i in range(2, 19):
         team_vec = spectral_k(G, i)
         nx.set_node_attributes(G, {v: team_vec[v] for v in G}, 'team')
         new_score = score(G)
         if new_score < best:
             best = new_score
             best_team = team_vec
-    nx.set_node_attributes(G, {v: best_team[v] for v in G}, 'team')
+    nx.set_node_attributes(G, {v: int(best_team[v]) for v in G}, 'team')
         
 
 
