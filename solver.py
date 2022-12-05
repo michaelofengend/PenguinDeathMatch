@@ -11,11 +11,6 @@ warnings.filterwarnings("ignore")
 
 for size in ['small', 'medium', 'large']:
     for i in range(1, 261):
-        with open('./outputs/' + size + str(i) + '.out') as fp:
-            arr = json.load(fp)
-        if 0 not in arr:
-            continue
-
         G = read_input('./inputs/' + size + str(i) + '.in')
         all_funcs = alg.functions
         best_score = float('inf')
