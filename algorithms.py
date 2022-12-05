@@ -57,15 +57,7 @@ Incomplete greedy solution
 """
 # INCOMPLETE
 def greedy(G):
-    n = G.number.of.nodes()
-    G_copy = nx.complete_graph(n)
-    edges = G.edges(data=True)
-    edges.sort(lambda x: x['weight'])
-    team_size = n / k
-    remainder = n - team_size
-    while nx.number_connected_components(G) > k:
-        longest_edge = edges.pop()
-        G.remove_edge(longest_edge)
+    pass
 
 """
 Solution for planar graphs
@@ -155,7 +147,7 @@ def color_MST(G):
         highest_degree = (max(max_st.degree(), key = lambda x:x[1]))[1]
         colors = nx.coloring.equitable_color(max_st, highest_degree + 1)
         for c in colors.keys():
-            G.nodes[c]['team'] = colors[c]
+            G.nodes[c]['team'] = colors[c] + 1
         new_score = score(G)
 
 
@@ -176,8 +168,8 @@ def read_partition(G):
     name = G.name
     best = None
     best_score = float('inf')
-    for k in range(2, 27):
-        path = "./sample_partition_2/" + name + "_part" + str(k) + ".in"
+    for k in range(2, 18):
+        path = "./sample_partition_3/" + name + "_part" + str(k) + ".in"
         with open(path) as fp:
             arr = json.load(fp)
         size = arr[-1]["nodeId"] - arr[0]["nodeId"]

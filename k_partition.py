@@ -19,7 +19,7 @@ class App:
             session.execute_write(self._load_graphml, name)
             session.execute_write(self._label_nodes)
             session.execute_write(self._create_graph)
-            for k in range(2, 13):
+            for k in range(2, 19):
                 result = session.execute_write(self._max_k_cut, k)
                 dump = []
                 for record in result:
@@ -54,7 +54,7 @@ class App:
 
     @staticmethod
     def _max_k_cut(tx, k):
-        query = ("CALL gds.alpha.maxkcut.stream('g', {k:" + str(k) + ", relationshipWeightProperty:'weight', iterations : 30, vnsMaxNeighborhoodOrder : 50}) YIELD nodeId, communityId")
+        query = ("CALL gds.alpha.maxkcut.stream('g', {k:" + str(k) + ", relationshipWeightProperty:'weight', iterations : 30, vnsMaxNeighborhoodOrder : 20}) YIELD nodeId, communityId")
         result = tx.run(query)
         return [row for row in result]
 

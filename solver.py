@@ -19,9 +19,14 @@ for size in ['small', 'medium', 'large']:
             if new_score < best_score:
                 best_score = new_score
                 best_func = func
-        print(best_score, best_func)
-
-a = WGraph(G)
-new_score, best_swap = swap(a, 100)
-a.score = new_score
-a.G.nodes[best_swap[0]] = [best_swap[1]]
+        print(size + str(i), best_score, best_func)
+"""
+G = read_input('./inputs/small1.in')
+alg.read_partition(G)
+# Sample swap
+print('before', score(G))
+a = WGraph.WGraph(G)
+for _ in range(1):
+    swap(a, 10000)
+print('after', score(a.graph))
+"""

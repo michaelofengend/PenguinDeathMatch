@@ -54,7 +54,7 @@ def read_partition(G):
     print(k)
     return G
 
-def color_MST(G):
+def random_color_MST(G):
     colors = nx.coloring.greedy_color(G, strategy = 'random_sequential', interchange=True)
     for c in colors.keys():
         G.nodes[c]['team'] = colors[c]

@@ -12,23 +12,17 @@ class WGraph:
         """
         self.graph = G
         self.teams = []
-        if init_method:
-            init_func = getattr(algorithms, init_method)
-            init_func(G)
-            output = [G.nodes[v]['team'] for v in range(G.number_of_nodes())]
-            teams, counts = np.unique(output, return_counts=True)
-            k = np.max(teams)
-            self.k = k
-            b = np.array((counts / G.number_of_nodes()) - 1 / k)
-            C_w = sum(d for u, v, d in G.edges(data='weight') if output[u] == output[v])
-            self.C_w = C_w
-            self.cost = score(G)
-            self.b = b
-            self.bnorm = np.linalg.norm(b, 2)
-        else:
-            self.cost = score(G)
-            self.b = None
-            self.bnorm = 0
+
+        output = [G.nodes[v]['team'] for v in range(G.number_of_nodes())]
+        teams, counts = np.unique(output, return_counts=True)
+        k = np.max(teams)
+        self.k = k
+        b = np.array((counts / G.number_of_nodes()) - 1 / k)
+        C_w = sum(d for u, v, d in G.edges(data='weight') if output[u] == output[v])
+        self.C_w = C_w
+        self.cost = score(G)
+        self.b = b
+        self.bnorm = np.linalg.norm(b, 2)
 
     def updateSwap(self, n, team_j, new_cost): # These parameters can be obtained from swaps.swap
         self.graph.nodes[n]['team'] = team_j
@@ -42,3 +36,13 @@ class WGraph:
     
     def updateCost(self):
         return 0
+
+    def copy(self):
+        G_copy = self.graph.copy()
+        copy = WGraph(G_copy)
+        copy.k = self.k
+        copy.C_w = self.C_w
+        copy.cost = self.cost
+        copy.b = self.b[:]
+        copy.bnorm = self.bnorm
+        return copy
