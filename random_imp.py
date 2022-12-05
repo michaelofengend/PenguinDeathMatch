@@ -4,7 +4,7 @@ from starter import *
 sizes = ['small', 'medium', 'large']
 
 for size in sizes:
-    for i in range(70, 261):
+    for i in range(1, 261):
         G = read_input('./inputs/' + size + str(i) + '.in')
         try:
             curr = read_output(G, './outputs/' + size + str(i) + '.out')
