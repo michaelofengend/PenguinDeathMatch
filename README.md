@@ -1,4 +1,6 @@
 # Fall 2022 CS170 Project Skeleton
+An attempt to solve/optimiza an NP-hard problem with a variety of algorithms.
+
 
 TO OBTAIN INPUTS: Run solver.py. It goes through every possible algorithm that is in the
 All outputs will be generated in the outputs folder. WARNING: This will overwrite existing outputs.
